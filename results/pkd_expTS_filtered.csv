@@ -1,0 +1,12 @@
+"","Brain_cerebellum","Breast","Lymphoblastoid_cell_line","Colon_transverse","Kidney_cortex","Liver","Lung","Pancreas","Pituitary","Prostate","Intestine_terminal_ileum","Stomach","Testis"
+"PKD1",1,0,0,0,0,0,0,0,1,0,0,0,0
+"GANAB",0,0,0,0,0,0,0,0,0,0,0,0,0
+"TSC2",1,0,0,0,0,0,0,0,1,0,0,0,0
+"HNF1B",0,0,1,1,1,1,1,1,0,1,1,1,1
+"NPHP3",0,0,0,0,0,0,0,0,0,0,0,0,0
+"PKD2",0,0,0,0,0,0,0,0,0,0,0,0,0
+"VHL",0,0,1,0,0,0,0,0,0,0,0,0,0
+"UMOD",0,1,0,0,1,0,0,1,0,1,0,1,1
+"PKHD1",0,0,0,0,1,0,0,1,0,0,0,0,0
+"MUC1",0,0,0,0,0,0,0,0,0,0,0,0,0
+"CYS1",0,0,0,0,0,0,0,0,0,0,0,0,0
