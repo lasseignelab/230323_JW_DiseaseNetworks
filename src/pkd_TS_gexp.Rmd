@@ -25,8 +25,15 @@ This R markdown is for exploration of tissue-specific gene expression of PKD-ass
 read in PKD-associated gene csv
 ```{r}
 pkd_genes <- read.csv(here("data/pkd_associated_genes.csv"))
+
 #name alteration to find matches
-pkd_genes[8,1] <- "HNF1B" #"HNF1-beta" to HNF1B
+pkd_genes <- pkd_genes %>% rename(., orig_gene = gene) %>% mutate(., gene = ifelse(orig_gene == "HNF1-beta", "HNF1B", ifelse(orig_gene == "NPHP13", "WDR19", ifelse(orig_gene == "NPHP2", "INVS", ifelse(orig_gene == "DZIPL1", "DZIP1L", orig_gene)))))
+      
+```
+
+save pkd-associated genes w/ updated names
+```{r}
+write.csv(pkd_genes, file = here("data/pkd_associated_genes_renamed.csv"))
 ```
 
 Contents of RData file used for this R markdown:  
@@ -80,50 +87,40 @@ write.csv(pkd_expTS_min, here("results/pkd_expTS_filtered.csv"))
 ## Visualize
 annotation
 ```{r}
-
-# row_ha <- ComplexHeatmap::rowAnnotation(Disease = pkd_gene_anno$disease, 
-#                                         #Multiplicity = pkd_gene_anno$Multiplicity,
+# pkd_dis <- pkd_gene_anno$disease
+# names(pkd_dis) <- pkd_gene_anno$gene
+# 
+# pkd_mult <- pkd_gene_anno$Multiplicity
+# names(pkd_mult) <- pkd_gene_anno$gene
+# 
+# row_ha <- ComplexHeatmap::rowAnnotation(Disease = pkd_dis, 
+#                                         Multiplicity = pkd_mult,
 #                                         #colors
 #                                         col = list(
-#                                           Disease = c(unique(pkd_gene_anno$disease)[1] = viridis::rocket(6)[1],
-#                                                       unique(pkd_gene_anno$disease)[2] = viridis::rocket(6)[2],
-#                                                       unique(pkd_gene_anno$disease)[3] = viridis::rocket(6)[3], 
-#                                                       unique(pkd_gene_anno$disease)[4] = viridis::rocket(6)[4],
-#                                                       unique(pkd_gene_anno$disease)[5] = viridis::rocket(6)[5],
-#                                                       unique(pkd_gene_anno$disease)[6] = viridis::rocket(6)[6]
+#                                           Disease = c("ADPKD" = viridis::cividis(6)[1],
+#                                                       "ARPKD" = viridis::cividis(6)[2],
+#                                                       "TSC" = viridis::cividis(6)[3], 
+#                                                       "HNF1betaDiease" = viridis::cividis(6)[4],
+#                                                       "NPHP" = viridis::cividis(6)[5],
+#                                                       "VonHippel-Lindau" = viridis::cividis(6)[6]
 #                                                       ))) 
-pkd_dis <- pkd_gene_anno$disease
-names(pkd_dis) <- pkd_gene_anno$gene
-
-pkd_mult <- pkd_gene_anno$Multiplicity
-names(pkd_mult) <- pkd_gene_anno$gene
-
-row_ha <- ComplexHeatmap::rowAnnotation(Disease = pkd_dis, 
-                                        Multiplicity = pkd_mult,
-                                        #colors
-                                        col = list(
-                                          Disease = c("ADPKD" = viridis::cividis(6)[1],
-                                                      "ARPKD" = viridis::cividis(6)[2],
-                                                      "TSC" = viridis::cividis(6)[3], 
-                                                      "HNF1betaDiease" = viridis::cividis(6)[4],
-                                                      "NPHP" = viridis::cividis(6)[5],
-                                                      "VonHippel-Lindau" = viridis::cividis(6)[6]
-                                                      ))) 
-# row_anno <- pkd_gene_anno %>% column_to_rownames(., var = "gene") %>% arrange(desc(Multiplicity)) %>% mutate(., gene = factor("gene", levels = "gene"))  %>% select(., Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
-
-row_anno <- pkd_gene_anno %>% arrange(desc(Multiplicity)) %>% mutate(., gene = factor(gene, levels = gene))  %>% select(., Gene = gene, Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
-rownames(row_anno) <- row_anno$Gene
- row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno)
+# row_anno <- pkd_gene_anno %>% arrange(desc(Multiplicity)) %>% mutate(., gene = factor(gene, levels = gene))  %>% select(., Gene = gene, Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
+# rownames(row_anno) <- row_anno$Gene
+#  row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno)
  
 row_anno <- pkd_expTS_min %>% rownames_to_column(., var = "gene") %>% left_join(., pkd_gene_anno, by = c("gene" )) %>% column_to_rownames(., var = "gene") %>% select(., Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
+
 rownames(row_anno) <- row_anno$Gene
- row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno, col = list(
+
+row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno, col = list(
                                           Disease = c("ADPKD" = viridis::cividis(6)[1],
                                                       "ARPKD" = viridis::cividis(6)[2],
                                                       "TSC" = viridis::cividis(6)[3], 
                                                       "HNF1betaDiease" = viridis::cividis(6)[4],
                                                       "NPHP" = viridis::cividis(6)[5],
-                                                      "VonHippel-Lindau" = viridis::cividis(6)[6]) ))
+                                                      "VonHippel-Lindau" = viridis::cividis(6)[6]), TF = c("no" = viridis::mako(3)[1],
+                    "yes/no-motif" = viridis::mako(3)[2],                                                  "yes/motif"  = viridis::mako(3)[3]
+                                                      ) ))
 #                                         #, Multiplicity = c()))
 
 # auto_ha <- function(feature, featurename){
@@ -159,6 +156,7 @@ edges2 <- edges %>% as.data.frame() %>% mutate(., Index = row.names(netTS))
 #filter for PKD-associated genes as TF's and targets
 pkd_edges <- dplyr::filter(edges2, Gene %in% pkd_gene_anno$Name | TF %in% pkd_gene_anno$gene)
 gc()
+test <- dplyr::filter(edges2, TF %in% pkd_gene_anno$gene)
 ```
 
 combine pkd edge data with tissue-specific edge data
@@ -225,8 +223,8 @@ ggsave(here("results/pkd_edgesTS_prop_lolli.png"))
 correlation of PKD TS-expression and PKD TS-edges by tissues
 ```{r}
 tis_prop_corr <- cor.test(pkd_TS_compare$TS_Exp_Prop, pkd_TS_compare$TS_Edges_Prop)
-tis_prop_corr$estimate
-tis_prop_corr$p.value
+tis_prop_corr$estimate #0.2499853
+tis_prop_corr$p.value #0.130106
 ```
 
 
