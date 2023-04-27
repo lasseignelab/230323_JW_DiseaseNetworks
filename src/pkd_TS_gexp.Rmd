@@ -13,6 +13,9 @@ output:
 load in packages
 ```{r}
 library(tidyverse)
+#setwd("/data/user/lizzyr/230323_JW_DiseaseNetworks/")
+library(here)
+library(ggplot2)
 ```
 
 ##Purpose  
@@ -21,7 +24,7 @@ This R markdown is for exploration of tissue-specific gene expression of PKD-ass
 ##Data
 read in PKD-associated gene csv
 ```{r}
-pkd_genes <- read.csv("./data/pkd_associated_genes.csv")
+pkd_genes <- read.csv(here("data/pkd_associated_genes.csv"))
 #name alteration to find matches
 pkd_genes[8,1] <- "HNF1B" #"HNF1-beta" to HNF1B
 ```
@@ -32,10 +35,10 @@ __genes:__ a 30,243 by 4 data.frame that includes annotation information (Symbol
   
 load in RData file from Sonawane et al.
 ```{r}
-load("./data/GTEx_PANAD_Tissues.Rdata")
+load(here("data/GTEx_PANAD_Tissues.Rdata"))
 ```
 
-##Tissue Specific Expression of PKD-Associated Genes
+##TS Expression of PKD-Associated Genes
 get annotation info for PKD-associated genes
 ```{r}
 pkd_gene_anno <- dplyr::inner_join(pkd_genes, genes, by = c("gene" = "Symbol"))
@@ -53,7 +56,7 @@ pkd_expTS <- expTS %>% as.data.frame(.) %>%
 save full annotation/tissue specific expression value table
 ```{r}
 summary(pkd_expTS)
-write.csv(pkd_expTS, "./results/pkd_expTS_fullannotation.csv")
+write.csv(pkd_expTS, here("results/pkd_expTS_fullannotation.csv"))
 
 #ComplexHeatmap::Heatmap(pkd_expTS[,2:39], row_labels = pkd_expTS$gene, column_labels = colnames(pkd_expTS)[2:39])
 ```
@@ -65,13 +68,13 @@ tis_var <- pkd_expTS %>% summarise_if(is.numeric, var) %>% select(., !(Multiplic
 #tis_keep <- colnames(tis_var[tis_var > 0])
 tis_keep <- tis_var[,tis_var!=0]
 
-pkd_expTS_min <- pkd_expTS %>% column_to_rownames(., var = "gene") %>% select(., c(colnames(tis_keep)))
+pkd_expTS_min <- pkd_expTS %>% arrange(desc(Multiplicity)) %>% mutate(., gene = factor(gene, levels = gene)) %>% column_to_rownames(., var = "gene") %>% select(., c(colnames(tis_keep)))
   #pkd_expTS[colnames(pkd_expTS) %in% colnames(tis_keep),]
 ```
 
 save table of tissue specific pkd-associated gene expression, filtered for tissues w/ specificity for at least one pkd-associated gene
 ```{r}
-write.csv(pkd_expTS_min, "./results/pkd_expTS_filtered.csv")
+write.csv(pkd_expTS_min, here("results/pkd_expTS_filtered.csv"))
 ```
 
 ## Visualize
@@ -106,9 +109,23 @@ row_ha <- ComplexHeatmap::rowAnnotation(Disease = pkd_dis,
                                                       "NPHP" = viridis::cividis(6)[5],
                                                       "VonHippel-Lindau" = viridis::cividis(6)[6]
                                                       ))) 
-row_anno <- pkd_gene_anno %>% column_to_rownames(., var = "gene") %>% reorder(., desc(Multiplicity)) %>% select(., Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
-row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno)
-                                        #, Multiplicity = c()))
+# row_anno <- pkd_gene_anno %>% column_to_rownames(., var = "gene") %>% arrange(desc(Multiplicity)) %>% mutate(., gene = factor("gene", levels = "gene"))  %>% select(., Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
+
+row_anno <- pkd_gene_anno %>% arrange(desc(Multiplicity)) %>% mutate(., gene = factor(gene, levels = gene))  %>% select(., Gene = gene, Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
+rownames(row_anno) <- row_anno$Gene
+ row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno)
+ 
+row_anno <- pkd_expTS_min %>% rownames_to_column(., var = "gene") %>% left_join(., pkd_gene_anno, by = c("gene" )) %>% column_to_rownames(., var = "gene") %>% select(., Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
+rownames(row_anno) <- row_anno$Gene
+ row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno, col = list(
+                                          Disease = c("ADPKD" = viridis::cividis(6)[1],
+                                                      "ARPKD" = viridis::cividis(6)[2],
+                                                      "TSC" = viridis::cividis(6)[3], 
+                                                      "HNF1betaDiease" = viridis::cividis(6)[4],
+                                                      "NPHP" = viridis::cividis(6)[5],
+                                                      "VonHippel-Lindau" = viridis::cividis(6)[6]) ))
+#                                         #, Multiplicity = c()))
+
 # auto_ha <- function(feature, featurename){
 #   row_ha <- NULL
 #   palsize <- length(unique(feature))
@@ -124,11 +141,92 @@ row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno)
 
 ####Heatmap
 ```{r}
-png("./results/pkd_expTS_diseaseanno_heatmap.png", width = 25, height = 30, units = "cm", res = 300)
+png(here("results/pkd_expTS_diseaseanno_heatmap.png"), width = 25, height = 30, units = "cm", res = 300)
 set.seed(1)
-ComplexHeatmap::Heatmap(as.matrix(pkd_expTS_min), row_labels = rownames(pkd_expTS_min), column_labels = colnames(pkd_expTS_min), right_annotation = row_ha) ##annotation order is wrong!!
+ComplexHeatmap::Heatmap(as.matrix(pkd_expTS_min), row_labels = rownames(pkd_expTS_min), column_labels = colnames(pkd_expTS_min), right_annotation = row_ha, cluster_rows = FALSE) 
 
 dev.off()
+```
+
+## TS Edges Involving PKD-Associated Genes  
+
+filter for edges that include PKD-associated genes (either as the TF or the target)
+```{r}
+#create a way to be able to compare the edges matrix and netTS matrix -- should be in the same order
+netTS2 <- netTS %>% as.data.frame() %>% mutate(., Index = row.names(netTS))
+edges2 <- edges %>% as.data.frame() %>% mutate(., Index = row.names(netTS))
+
+#filter for PKD-associated genes as TF's and targets
+pkd_edges <- dplyr::filter(edges2, Gene %in% pkd_gene_anno$Name | TF %in% pkd_gene_anno$gene)
+gc()
+```
+
+combine pkd edge data with tissue-specific edge data
+```{r}
+pkd_edgesTS <- inner_join(pkd_edges, netTS2, by = c("Index"))
+
+```
+
+save table of tissue specific pkd-associated edges
+```{r}
+write.csv(pkd_edgesTS, here("results/pkd_edgesTS.csv"))
+```
+
+#### Filtering
+remove tissues w/o any specific expression for pkd-associated edges
+```{r}
+tis_var_edges <- pkd_edgesTS %>% select(!c(Prior, Index)) %>% summarise_if(is.numeric, var)
+tis_var_edges
+#all 38 tissues have some specificity
+```
+## TS Edges vs Expression
+find tissues with the most TS edges and expression for PKD-associated genes
+```{r}
+toptis_ts_exp <- pkd_expTS %>% select(!c(Multiplicity)) %>% summarise_if(is.numeric, sum)
+
+toptis_ts_edges <- pkd_edgesTS %>% select(!c(Prior, Index)) %>% summarise_if(is.numeric, sum)
+```
+
+combine TS edge and TS expression info
+```{r}
+pkd_TS_compare <- data.frame(TS_Exp_Var = t(tis_var), TS_Edges_Var = t(tis_var_edges), TS_Exp_Sum = t(toptis_ts_exp), TS_Edges_Sum = t(toptis_ts_edges))
+
+```
+
+
+```{r}
+#proportion of PKD-TS exp/edges
+pkd_TS_compare <- pkd_TS_compare %>% mutate(TS_Exp_Prop = TS_Exp_Sum/nrow(pkd_expTS), TS_Edges_Prop = TS_Edges_Sum/nrow(pkd_edges))
+```
+
+### Visualization  
+Lollipop of proportion of PKD-associate genes TS expression
+```{r}
+pkd_TS_compare %>% rownames_to_column(., var = "tissue")%>% arrange(TS_Exp_Prop) %>% mutate(tissue = factor(tissue, levels = tissue)) %>% ggplot(aes(x = tissue, y = TS_Exp_Prop)) +
+    geom_segment( aes(xend=tissue, yend=0)) +
+    geom_point( size=4, color="orange") +
+    coord_flip() +
+    theme_bw() +
+    xlab("")
+ggsave(here("results/pkd_expTS_prop_lolli.png"))
+```
+
+Lollipop of proportion of PKD-associate genes TS expression
+```{r}
+pkd_TS_compare %>% rownames_to_column(., var = "tissue")%>% arrange(TS_Edges_Prop) %>% mutate(tissue = factor(tissue, levels = tissue)) %>% ggplot(aes(x = tissue, y = TS_Edges_Prop)) +
+    geom_segment( aes(xend=tissue, yend=0)) +
+    geom_point( size=4, color="orange") +
+    coord_flip() +
+    theme_bw() +
+    xlab("")
+ggsave(here("results/pkd_edgesTS_prop_lolli.png"))
+```
+
+correlation of PKD TS-expression and PKD TS-edges by tissues
+```{r}
+tis_prop_corr <- cor.test(pkd_TS_compare$TS_Exp_Prop, pkd_TS_compare$TS_Edges_Prop)
+tis_prop_corr$estimate
+tis_prop_corr$p.value
 ```
 
 
