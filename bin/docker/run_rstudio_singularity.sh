@@ -31,15 +31,12 @@ options:
     -s (Required) The singularity image
     -p (Required) The password for your RStudio container
     -u (Required) The server username. Typically the same as $USER
-    -m (Optional) The Singularity module to load (Default: 
-Singularity/3.5.2-GCC-5.4.0-2.26)
+    -m (Optional) The Singularity module to load (Default: Singularity/3.5.2-GCC-5.4.0-2.26)
     -w (Optional) The port number to RStudio container (Default: 8787)
-    -b (Optional) Directory to bind. Can be specified multiple times to 
-bind additional directories
+    -b (Optional) Directory to bind. Can be specified multiple times to bind additional directories
     --server-data-dir (Optional) Use --server-data-dir param of rserver; \
 typically available to rocker/rstudio tags > 4.0.0 (Default: false)
-    -c (Optional) The rstudio user config absolute path (e.g.: 
-rstudio-prefs.json)
+    -c (Optional) The rstudio user config absolute path (e.g.: rstudio-prefs.json)
 
 EOF
 }
@@ -91,8 +88,7 @@ done
 
 ### CHECK REQUIRED PARAMS
 if [ -z "$SINGULARITY_IMAGE" ]; then
-    err_exit "No argument supplied -s ; missing singularity image 
-${reset}"
+    err_exit "No argument supplied -s ; missing singularity image ${reset}"
 elif [ -z "$PASSWORD" ]; then
     err_exit "No argument supplied -p ; missing password ${reset}"
 elif [ -z "$SERVER_USER" ]; then
@@ -106,10 +102,8 @@ if [[ "$SERVER_DATA_DIR" == "true" ]]; then
     path_length=$(echo $cwd | awk '{print length}')
     
     if [[ $path_length -gt $max_path_length ]]; then
-        err_exit "The length of the current path is too long; Please run 
-this "`
-                 `"in an upstream directory or a path with a shorter total 
-"`
+        err_exit "The length of the current path is too long; Please run this "`
+                 `"in an upstream directory or a path with a shorter total "`
                  `"length (\$USER_SCRATCH for example) ${reset}"
     fi
 
@@ -125,19 +119,15 @@ if [ "$SERVER_DATA_DIR" == "true" ]; then
     add_bind_params+="--bind ${cwd}/singularity_tmp_dir "
     server_data_dir="--server-data-dir ${cwd}/singularity_tmp_dir"
 else
-    echo -e "--server-data-dir set to $SERVER_DATA_DIR, thus not mounting 
-custom data directory for R server" #false
+    echo -e "--server-data-dir set to $SERVER_DATA_DIR, thus not mounting custom data directory for R server" #false
     server_data_dir=""
 fi
 
 ### rstudio-prefs.json (-c)
 if [ "$USER_CONFIG_PATH" != "" ]; then
-    add_bind_params+="--bind 
-${USER_CONFIG_PATH}:/home/${SERVER_USER}/.config/rstudio/rstudio-prefs.json 
-"
+    add_bind_params+="--bind ${USER_CONFIG_PATH}:/home/${SERVER_USER}/.config/rstudio/rstudio-prefs.json "
 else
-    echo -e "\nNo custom RStudio preferances provided. Defaulting to 
-standard profile"
+    echo -e "\nNo custom RStudio preferances provided. Defaulting to standard profile"
 fi
 
 ### USER PROVIDED PATHS
@@ -148,8 +138,7 @@ done
 
 if [ "$add_bind_params" != "" ] ; 
 then
-    echo -e "\nWill append the following binding commands: 
-$add_bind_params"
+    echo -e "\nWill append the following binding commands: $add_bind_params"
 else
     echo -e "\nNo additional binding paths or directories provided"
 fi
@@ -163,16 +152,13 @@ module load $SINGULARITY_MODULE
 #######################
 ### PRE-REQUIREMENTS ##
 #######################
-# All files, directories etc. below are to avoid specific Singularity 
-errors identified
+# All files, directories etc. below are to avoid specific Singularity errors identified
 # For more details see troubleshooting tips at: 
-# 
-https://u-bds.github.io/training_guides/intro_to_docker_rstudio_part3.html#Troubleshooting_tips
+# https://u-bds.github.io/training_guides/intro_to_docker_rstudio_part3.html#Troubleshooting_tips
 
 mkdir -p run var-lib-rstudio-server rstudio_tmp
 
-printf 'provider=sqlite\ndirectory=/var/lib/rstudio-server\n' > 
-database.conf
+printf 'provider=sqlite\ndirectory=/var/lib/rstudio-server\n' > database.conf
 
 uuid > my_secure_cookie_key
 
@@ -189,8 +175,7 @@ export SINGULARITYENV_USER=$SERVER_USER
 echo -e \
 "${yellow} \n---- Initiating singularity exec ---- \
 \n---- Go to http://localhost:${PORT} to visit your RStudio session ---- \
-\n---- To stop the container, exit this script (e.g. ctrl+C)---- \n 
-${reset}"
+\n---- To stop the container, exit this script (e.g. ctrl+C)---- \n ${reset}"
 
 #NOTE: add_bind_params should be first in binding commands
 # in case user re-binds pwd/cwd, or path within pwd/cwd
@@ -199,9 +184,7 @@ singularity exec \
     --cleanenv \
     --containall \
     $add_bind_params \
-    --bind 
-run:/run,var-lib-rstudio-server:/var/lib/rstudio-server,database.conf:/etc/rstudio/database.conf,rstudio_tmp:/tmp 
-\
+    --bind run:/run,var-lib-rstudio-server:/var/lib/rstudio-server,database.conf:/etc/rstudio/database.conf,rstudio_tmp:/tmp \
     --bind $cwd/my_secure_cookie_key \
     $SINGULARITY_IMAGE \
     rserver \
@@ -213,4 +196,3 @@ run:/run,var-lib-rstudio-server:/var/lib/rstudio-server,database.conf:/etc/rstud
     --server-user=$SERVER_USER \
     --www-port $PORT \
     $server_data_dir
-

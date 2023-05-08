@@ -1,0 +1,370 @@
+---
+title: "01_EdgeSpecificity"
+author: "TC Howton"
+date: "2023-04-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Purpose
+This RMarkdown identifies edge specificity for all 38 Gtex PANDA tissue-specific
+networks for the ADPKD- and ARPKD-associated genes.
+
+### Load Packages
+```{r LoadPackages}
+suppressPackageStartupMessages({
+  library(here)
+  library(ggplot2)
+  #library(ComplexHeatmap)
+})
+```
+
+### Load Data
+Glass table of tissue specific edges from here: https://sites.google.com/a/channing.harvard.edu/kimberlyglass/tools/gtex-networks
+
+```{r LoadData}
+#imported in Environment as STable1_GTEx_TSInfo_Edges from STable1_GTEx_TSInfo_Edges.txt 
+STable1_GTEx_TSInfo_Edges <- read.delim2(
+  paste0(
+    "/data/",
+    "project/",
+    "lasseigne_lab/",
+    "DATASET_dir/",
+    "GtexPanda/",
+    "STable1_GTEx_TSInfo_Edges.txt"
+  )
+)
+
+pkd_associated_genes <- read.csv(
+  here(
+    "data",
+    "pkd_associated_genes.csv"
+  )
+)
+dim(STable1_GTEx_TSInfo_Edges) #6,570,096 rows 5 cols
+dim(pkd_associated_genes) # 14 rows 3 cols
+
+# Add Ensembl IDs for each gene
+pkd_associated_genes$ensemblID <- c(
+  "ENSG00000008710", 
+  "ENSG00000118762", 
+  "ENSG00000089597", 
+  "ENSG00000170927", 
+  "ENSG00000158163", 
+  "ENSG00000205795", 
+  "ENSG00000103197", 
+  "ENSG00000275410", 
+  "ENSG00000185499", 
+  "ENSG00000169344", 
+  "ENSG00000119509", 
+  "ENSG00000113971", 
+  "ENSG00000157796", 
+  "ENSG00000134086"
+)
+
+pkd_associated_genes$gene[[8]] <- "HNF1B"
+pkd_associated_genes$gene[[5]] <- "DZIP1L"
+
+```
+
+```{r}
+#figure out Tissues
+
+tissueTypes<-unlist(strsplit(STable1_GTEx_TSInfo_Edges$Tissues, ","))
+tissueTypes <- unique(tissueTypes)
+tissueTypesWOnone <- tissueTypes[tissueTypes != "none"]
+```
+
+### Check to see if any of our genes are TFs
+
+```{r}
+head(STable1_GTEx_TSInfo_Edges)
+for (i in 1:length(pkd_associated_genes$gene)) {
+  gene <- pkd_associated_genes$gene[[i]]
+  print(
+    paste0(
+      gene, 
+      " - ",
+      sum(STable1_GTEx_TSInfo_Edges$TF == gene)
+    )
+  )
+}
+
+# "PKD1 - 0"
+# "PKD2 - 0"
+# "GANAB - 0"
+# "PKHD1 - 0"
+# "DZIP1L - 0"
+# "CYS1 - 0"
+# "TSC2 - 0"
+# "HNF1B - 9210"
+# "MUC1 - 0"
+# "UMOD - 0"
+# "NPHP2 - 0"
+# "NPHP3 - 0"
+# "NPHP13 - 0"
+# "VHL - 0"
+
+
+for (i in 1:length(pkd_associated_genes$ensemblID)) {
+  ID <- pkd_associated_genes$ensemblID[[i]]
+  gene <- pkd_associated_genes$gene[[i]]
+  print(
+    paste0(
+      gene,
+      " - ",
+      ID,
+      " - ",
+      sum(STable1_GTEx_TSInfo_Edges$TargetGene == ID)
+    )
+  )
+}
+
+# "PKD1 - ENSG00000008710 - 316"
+# "PKD2 - ENSG00000118762 - 254"
+# "GANAB - ENSG00000089597 - 184"
+# "PKHD1 - ENSG00000170927 - 309"
+# "DZIP1L - ENSG00000158163 - 155"
+# "CYS1 - ENSG00000205795 - 72"
+# "TSC2 - ENSG00000103197 - 456"
+# "HNF1B - ENSG00000275410 - 0"
+# "MUC1 - ENSG00000185499 - 290"
+# "UMOD - ENSG00000169344 - 383"
+# "NPHP2 - ENSG00000119509 - 196"
+# "NPHP3 - ENSG00000113971 - 244"
+# "NPHP13 - ENSG00000157796 - 462"
+# "VHL - ENSG00000134086 - 158"
+```
+
+
+### Subset the STable1 for each pkd gene
+```{r SubsetForPkdGenes}
+gene_subsets <- list()
+for (i in 1:length(pkd_associated_genes$ensemblID)) {
+  print(pkd_associated_genes$ensemblID[[i]])
+  gene_subset <- STable1_GTEx_TSInfo_Edges[
+    STable1_GTEx_TSInfo_Edges$TargetGene == pkd_associated_genes$ensemblID[[i]] &
+      STable1_GTEx_TSInfo_Edges$Tissues != "none", ]
+  gene <- pkd_associated_genes$ensemblID[[i]]
+  gene_subsets[[gene]] <- gene_subset
+}
+
+gene_subsets_total <- list()
+for (i in 1:length(pkd_associated_genes$ensemblID)) {
+  print(pkd_associated_genes$ensemblID[[i]])
+  gene_subset <- STable1_GTEx_TSInfo_Edges[
+    STable1_GTEx_TSInfo_Edges$TargetGene == pkd_associated_genes$ensemblID[[i]], ]
+  gene <- pkd_associated_genes$ensemblID[[i]]
+  gene_subsets_total[[gene]] <- gene_subset
+}
+```
+
+```{r SaveSubsetsForPkdGenes}
+saveRDS(gene_subsets,
+        here(
+          "data",
+          "PKDGeneSubsets.rds"
+        ))
+```
+
+### Calculate the number of edges for each pkd gene
+```{r CalcTotalEdgesPerGene}
+gene_edge_counts <- list()
+for (i in 1:length(names(gene_subsets))) {
+  gene <- names(gene_subsets)[[i]]
+  gene_edge_counts[[gene]] <- nrow(gene_subsets[[i]])
+}
+
+gene_edge_counts_total <- list()
+for (i in 1:length(names(gene_subsets_total))) {
+  gene <- names(gene_subsets_total)[[i]]
+  gene_edge_counts_total[[gene]] <- nrow(gene_subsets_total[[i]])
+}
+```
+
+
+### Create a dataframe for each pkd gene
+```{r CreatePKDGeneDFs}
+# Create a list of dataframes for each gene that is appropriately sized
+gene_tissue_dfs <- list()
+for (i in 1:length(names(gene_subsets))) {
+  gene <- names(gene_subsets)[[i]]
+  gene_tissue_dfs[[gene]] <- data.frame(
+    matrix(
+      ncol = 38, 
+      nrow = gene_edge_counts[[gene]]
+    )
+  )
+}
+
+# Format the dataframes with the proper row and col names
+for (i in 1:length(names(gene_tissue_dfs))) {
+  gene <- names(gene_tissue_dfs)[[i]]
+  rownames(gene_tissue_dfs[[gene]]) <- gene_subsets[[gene]]$TF
+  colnames(gene_tissue_dfs[[gene]]) <- tissueTypesWOnone
+}
+```
+
+### Add a 1 if a TF-tissue relationship exists in each gene specific dataframe and 0 if not
+```{r CheckGeneOIEdgesExists}
+for (i in 1:length(names(gene_tissue_dfs))) {
+  gene <- names(gene_tissue_dfs)[[i]]
+  for (j in 1:nrow(gene_tissue_dfs[[gene]])) {
+    #print(gene_tissue_dfs[[gene]][[j]])
+    present <- unlist(strsplit(gene_subsets[[gene]]$Tissues[j], ","))
+    for (k in 1:length(present)) {
+      tissueForEdge <- present[k]
+      #print(tissueForEdge)
+      gene_tissue_dfs[[gene]][j,which(colnames(gene_tissue_dfs[[gene]])==tissueForEdge)]<-1
+    }
+  }
+}
+
+# Assign 0 for TF-pkd gene pairs that are not present in each tissue
+for (i in 1:length(names(gene_tissue_dfs))) {
+  gene_dataframe <- gene_tissue_dfs[[i]]
+  gene_dataframe[is.na(gene_dataframe)] <- 0
+  gene_tissue_dfs[[i]] <- gene_dataframe
+}
+```
+
+### Find proportion of edges by tissue
+```{r EdgeColSums}
+edges_gene_tissues <- list()
+for (i in 1:length(names(gene_tissue_dfs))) {
+  gene_dataframe <- gene_tissue_dfs[[i]]
+  edges_gene_tissues[[i]] <- colSums(gene_dataframe)
+}
+```
+
+```{r CalcEdgeProportions}
+proportions_per_gene <- list()
+for (i in 1:length(names(gene_tissue_dfs))) {
+  gene <- names(gene_tissue_dfs)[[i]]
+  gene_dataframe <- gene_tissue_dfs[[i]]
+  gene_proportion <- edges_gene_tissues[[i]]/gene_edge_counts[[i]]
+  proportions_per_gene[[gene]] <- gene_proportion
+}
+
+proportions_per_gene_total <- list()
+for (i in 1:length(names(gene_tissue_dfs))) {
+  gene <- names(gene_tissue_dfs)[[i]]
+  gene_dataframe <- gene_tissue_dfs[[i]]
+  gene_proportion <- edges_gene_tissues[[i]]/gene_edge_counts_total[[i]]
+  proportions_per_gene_total[[gene]] <- gene_proportion
+}
+```
+
+### Save proportions
+```{r SaveProportions}
+saveRDS(proportions_per_gene,
+        here(
+          "data",
+          "EdgeProportionsPerGenePerTissue.rds"
+        ))
+saveRDS(
+  proportions_per_gene,
+  here(
+    "data",
+    "EdgeProportionsPerGenePerTissueTotal.rds"
+  )
+)
+```
+
+### Format proportions for plotting
+```{r FormatProportions}
+formatted_proportions <- list()
+for (i in 1:length(names(proportions_per_gene_total))) {
+  gene <- names(proportions_per_gene_total)[[i]]
+  gene_dataframe <- as.data.frame(proportions_per_gene_total[[gene]])
+  colnames(gene_dataframe) <- "Proportions"
+  gene_dataframe$Tissues <- rownames(gene_dataframe)
+  formatted_proportions[[gene]] <- gene_dataframe
+}
+
+
+test <- as.data.frame(proportions_per_gene_total[[1]])
+colnames(test) <- "Proportions"
+test$Tissues <- rownames(test)
+```
+
+### Plot proportions
+```{r PlotProportions}
+pdf(
+  here(
+    "results",
+    "EdgeSpecificityProportionsByGene.pdf"
+  )
+)
+for (i in 1:length(names(formatted_proportions))) {
+  gene <- names(formatted_proportions)[[i]]
+  print(gene)
+  plot <- ggplot(
+    formatted_proportions[[gene]],
+    aes(
+      x = Proportions,
+      y = Tissues,
+    )
+  ) +
+    geom_point(
+      col = "tomato2",
+      size = 3
+    ) +
+    xlim(0, 1) +
+    labs(
+      title = paste0(
+        "Proportions of Specific Edges Per Tissue - ",
+        pkd_associated_genes$gene[[i]]),
+    )
+  print(plot)
+}
+dev.off()
+```
+
+### Heatmap Visualization
+```{r ConstructDataFrame}
+heatmap_dataframe <- data.frame(
+  matrix(
+    ncol = length(names(proportions_per_gene_total)), 
+    nrow = length(proportions_per_gene_total$ENSG00000008710)
+  )
+)
+
+rownames(heatmap_dataframe) <- tissueTypesWOnone
+colnames(heatmap_dataframe) <- pkd_associated_genes$gene
+
+test <- proportions_per_gene_total
+
+names(test) <- pkd_associated_genes$gene
+names(test)
+
+for (i in pkd_associated_genes$gene) {
+  heatmap_dataframe[[i]] <- test[[i]]
+}
+```
+
+
+```{r}
+test <- subset(heatmap_dataframe, select = -`HNF1-beta`)
+pdf(
+  "/data/user/tchowton/230323_JW_DiseaseNetworks/results/ProportionsHeatMap.pdf"
+)
+Heatmap(
+  test,
+  name = "Proportion",
+  show_column_dend = FALSE,
+  show_row_dend = FALSE
+)
+dev.off()
+```
+
+
+
+
+
+
+
+
