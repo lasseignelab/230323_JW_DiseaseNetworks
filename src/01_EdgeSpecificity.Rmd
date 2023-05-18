@@ -18,8 +18,17 @@ networks for the ADPKD- and ARPKD-associated genes.
 suppressPackageStartupMessages({
   library(here)
   library(ggplot2)
-  #library(ComplexHeatmap)
+  library(dplyr)
+  library(ComplexHeatmap)
+  library(circlize)
 })
+
+source(
+  here(
+    "src",
+    "functions.R"
+  )
+)
 ```
 
 ### Load Data
@@ -65,14 +74,13 @@ pkd_associated_genes$ensemblID <- c(
   "ENSG00000134086"
 )
 
+# Correct spelling errors in the gene symbols
 pkd_associated_genes$gene[[8]] <- "HNF1B"
 pkd_associated_genes$gene[[5]] <- "DZIP1L"
 
 ```
 
-```{r}
-#figure out Tissues
-
+```{r TissueLists}
 tissueTypes<-unlist(strsplit(STable1_GTEx_TSInfo_Edges$Tissues, ","))
 tissueTypes <- unique(tissueTypes)
 tissueTypesWOnone <- tissueTypes[tissueTypes != "none"]
@@ -80,8 +88,7 @@ tissueTypesWOnone <- tissueTypes[tissueTypes != "none"]
 
 ### Check to see if any of our genes are TFs
 
-```{r}
-head(STable1_GTEx_TSInfo_Edges)
+```{r TFandTargetSums}
 for (i in 1:length(pkd_associated_genes$gene)) {
   gene <- pkd_associated_genes$gene[[i]]
   print(
@@ -108,7 +115,7 @@ for (i in 1:length(pkd_associated_genes$gene)) {
 # "NPHP13 - 0"
 # "VHL - 0"
 
-
+# Check to make sure all the pkd genes are targets
 for (i in 1:length(pkd_associated_genes$ensemblID)) {
   ID <- pkd_associated_genes$ensemblID[[i]]
   gene <- pkd_associated_genes$gene[[i]]
@@ -137,162 +144,116 @@ for (i in 1:length(pkd_associated_genes$ensemblID)) {
 # "NPHP3 - ENSG00000113971 - 244"
 # "NPHP13 - ENSG00000157796 - 462"
 # "VHL - ENSG00000134086 - 158"
+
+# Filter out HNF1-B because it is not a target gene
+pkd_target_genes <-pkd_associated_genes[pkd_associated_genes$ensemblID != "ENSG00000275410",]
+pkd_gene_symbols <- pkd_target_genes$gene
+pkd_target_genes <- pkd_target_genes$ensemblID
+```
+### Calculate edge specficicity proportions per pkd gene
+
+```{r CalculateProportions}
+proportions_per_gene <- calculate_proportions(
+  gene_list = pkd_target_genes,
+  data_table = STable1_GTEx_TSInfo_Edges,
+  tissue_types = tissueTypesWOnone
+)
 ```
 
-
-### Subset the STable1 for each pkd gene
-```{r SubsetForPkdGenes}
-gene_subsets <- list()
-for (i in 1:length(pkd_associated_genes$ensemblID)) {
-  print(pkd_associated_genes$ensemblID[[i]])
-  gene_subset <- STable1_GTEx_TSInfo_Edges[
-    STable1_GTEx_TSInfo_Edges$TargetGene == pkd_associated_genes$ensemblID[[i]] &
-      STable1_GTEx_TSInfo_Edges$Tissues != "none", ]
-  gene <- pkd_associated_genes$ensemblID[[i]]
-  gene_subsets[[gene]] <- gene_subset
-}
-
-gene_subsets_total <- list()
-for (i in 1:length(pkd_associated_genes$ensemblID)) {
-  print(pkd_associated_genes$ensemblID[[i]])
-  gene_subset <- STable1_GTEx_TSInfo_Edges[
-    STable1_GTEx_TSInfo_Edges$TargetGene == pkd_associated_genes$ensemblID[[i]], ]
-  gene <- pkd_associated_genes$ensemblID[[i]]
-  gene_subsets_total[[gene]] <- gene_subset
-}
-```
-
-```{r SaveSubsetsForPkdGenes}
-saveRDS(gene_subsets,
-        here(
-          "data",
-          "PKDGeneSubsets.rds"
-        ))
-```
-
-### Calculate the number of edges for each pkd gene
-```{r CalcTotalEdgesPerGene}
-gene_edge_counts <- list()
-for (i in 1:length(names(gene_subsets))) {
-  gene <- names(gene_subsets)[[i]]
-  gene_edge_counts[[gene]] <- nrow(gene_subsets[[i]])
-}
-
-gene_edge_counts_total <- list()
-for (i in 1:length(names(gene_subsets_total))) {
-  gene <- names(gene_subsets_total)[[i]]
-  gene_edge_counts_total[[gene]] <- nrow(gene_subsets_total[[i]])
-}
-```
-
-
-### Create a dataframe for each pkd gene
-```{r CreatePKDGeneDFs}
-# Create a list of dataframes for each gene that is appropriately sized
-gene_tissue_dfs <- list()
-for (i in 1:length(names(gene_subsets))) {
-  gene <- names(gene_subsets)[[i]]
-  gene_tissue_dfs[[gene]] <- data.frame(
-    matrix(
-      ncol = 38, 
-      nrow = gene_edge_counts[[gene]]
+``` {r FormatProportions}
+formatted_proportions <- data.frame(
+      matrix(
+        ncol = length(pkd_target_genes), 
+        nrow = length(tissueTypesWOnone)
+      )
     )
-  )
-}
 
-# Format the dataframes with the proper row and col names
-for (i in 1:length(names(gene_tissue_dfs))) {
-  gene <- names(gene_tissue_dfs)[[i]]
-  rownames(gene_tissue_dfs[[gene]]) <- gene_subsets[[gene]]$TF
-  colnames(gene_tissue_dfs[[gene]]) <- tissueTypesWOnone
-}
-```
+rownames(formatted_proportions) <- tissueTypesWOnone
+colnames(formatted_proportions) <- pkd_target_genes
 
-### Add a 1 if a TF-tissue relationship exists in each gene specific dataframe and 0 if not
-```{r CheckGeneOIEdgesExists}
-for (i in 1:length(names(gene_tissue_dfs))) {
-  gene <- names(gene_tissue_dfs)[[i]]
-  for (j in 1:nrow(gene_tissue_dfs[[gene]])) {
-    #print(gene_tissue_dfs[[gene]][[j]])
-    present <- unlist(strsplit(gene_subsets[[gene]]$Tissues[j], ","))
-    for (k in 1:length(present)) {
-      tissueForEdge <- present[k]
-      #print(tissueForEdge)
-      gene_tissue_dfs[[gene]][j,which(colnames(gene_tissue_dfs[[gene]])==tissueForEdge)]<-1
-    }
-  }
-}
-
-# Assign 0 for TF-pkd gene pairs that are not present in each tissue
-for (i in 1:length(names(gene_tissue_dfs))) {
-  gene_dataframe <- gene_tissue_dfs[[i]]
-  gene_dataframe[is.na(gene_dataframe)] <- 0
-  gene_tissue_dfs[[i]] <- gene_dataframe
+for (i in 1:length(proportions_per_gene)) {
+  gene <- pkd_target_genes[i]
+  formatted_proportions[[gene]] <- proportions_per_gene[[gene]]
 }
 ```
-
-### Find proportion of edges by tissue
-```{r EdgeColSums}
-edges_gene_tissues <- list()
-for (i in 1:length(names(gene_tissue_dfs))) {
-  gene_dataframe <- gene_tissue_dfs[[i]]
-  edges_gene_tissues[[i]] <- colSums(gene_dataframe)
-}
-```
-
-```{r CalcEdgeProportions}
-proportions_per_gene <- list()
-for (i in 1:length(names(gene_tissue_dfs))) {
-  gene <- names(gene_tissue_dfs)[[i]]
-  gene_dataframe <- gene_tissue_dfs[[i]]
-  gene_proportion <- edges_gene_tissues[[i]]/gene_edge_counts[[i]]
-  proportions_per_gene[[gene]] <- gene_proportion
-}
-
-proportions_per_gene_total <- list()
-for (i in 1:length(names(gene_tissue_dfs))) {
-  gene <- names(gene_tissue_dfs)[[i]]
-  gene_dataframe <- gene_tissue_dfs[[i]]
-  gene_proportion <- edges_gene_tissues[[i]]/gene_edge_counts_total[[i]]
-  proportions_per_gene_total[[gene]] <- gene_proportion
-}
-```
-
 ### Save proportions
 ```{r SaveProportions}
-saveRDS(proportions_per_gene,
-        here(
-          "data",
-          "EdgeProportionsPerGenePerTissue.rds"
-        ))
 saveRDS(
   proportions_per_gene,
   here(
     "data",
-    "EdgeProportionsPerGenePerTissueTotal.rds"
+    "EdgeProportionsPerGenePerTissue.rds"
+  )
+)
+
+saveRDS(
+  formatted_proportions,
+  here(
+    "data",
+    "FormattedProportions.rds"
   )
 )
 ```
 
+### Permutation testing for p values
+```{r PermutationTest}
+# Set up p value data frame
+pval_df <- data.frame(
+      matrix(
+        ncol = length(pkd_target_genes), 
+        nrow = length(tissueTypesWOnone)
+      )
+    )
+
+rownames(pval_df) <- tissueTypesWOnone
+colnames(pval_df) <- pkd_target_genes
+
+# Permutation test to calculate the p value for each gene of interest per tissue
+for (i in 1:length(pkd_target_genes)) {
+  p_vals <- permutation_test(
+    data_table = STable1_GTEx_TSInfo_Edges,
+    tissue_types = tissueTypesWOnone,
+    gene_oi = pkd_target_genes[i],
+    nperm = 999
+  )
+  pval_df[,i] <- p_vals
+}
+```
+
+```{r SavePValues}
+saveRDS(
+  pval_df,
+  here(
+    "data",
+    "PValuesDataFrame.rds"
+  )
+)
+```
+
+
+
 ### Format proportions for plotting
 ```{r FormatProportions}
 formatted_proportions <- list()
-for (i in 1:length(names(proportions_per_gene_total))) {
-  gene <- names(proportions_per_gene_total)[[i]]
-  gene_dataframe <- as.data.frame(proportions_per_gene_total[[gene]])
+for (i in 1:length(names(proportions_per_gene))) {
+  gene <- names(proportions_per_gene)[[i]]
+  gene_dataframe <- as.data.frame(proportions_per_gene[[gene]])
   colnames(gene_dataframe) <- "Proportions"
   gene_dataframe$Tissues <- rownames(gene_dataframe)
   formatted_proportions[[gene]] <- gene_dataframe
 }
 
 
-test <- as.data.frame(proportions_per_gene_total[[1]])
-colnames(test) <- "Proportions"
-test$Tissues <- rownames(test)
+# test <- as.data.frame(proportions_per_gene[[1]])
+# colnames(test) <- "Proportions"
+# test$Tissues <- rownames(test)
 ```
 
 ### Plot proportions
-```{r PlotProportions}
+```{r PlotIndividualProportions}
+
+###################TODO fix the function and add p values####################
+
 pdf(
   here(
     "results",
@@ -322,49 +283,59 @@ for (i in 1:length(names(formatted_proportions))) {
   print(plot)
 }
 dev.off()
+
+test_gene <- pkd_target_genes[1]
+ggplot(
+    formatted_proportions,
+    aes(
+      x = ENSG00000008710,
+      y = rownames(formatted_proportions),
+    )
+  ) +
+    geom_point(
+      col = "tomato2",
+      size = 3
+    ) +
+    xlim(0, 1) +
+    labs(
+      title = paste0(
+        "Proportions of Specific Edges Per Tissue - ",
+        pkd_gene_symbols[1]),
+    )
 ```
 
 ### Heatmap Visualization
-```{r ConstructDataFrame}
-heatmap_dataframe <- data.frame(
-  matrix(
-    ncol = length(names(proportions_per_gene_total)), 
-    nrow = length(proportions_per_gene_total$ENSG00000008710)
+```{r HeatmapVisualization}
+proportions_matrix <- as.matrix(formatted_proportions)
+colnames(proportions_matrix) <- pkd_gene_symbols
+
+pval_mat <- as.matrix(pval_df)
+
+col_fun = colorRamp2(
+  c(0, 0.4),
+  c("white",
+    "blue")
+)
+png(
+  here(
+    "results",
+    "ProportionsHeatmap.png"
   )
 )
-
-rownames(heatmap_dataframe) <- tissueTypesWOnone
-colnames(heatmap_dataframe) <- pkd_associated_genes$gene
-
-test <- proportions_per_gene_total
-
-names(test) <- pkd_associated_genes$gene
-names(test)
-
-for (i in pkd_associated_genes$gene) {
-  heatmap_dataframe[[i]] <- test[[i]]
-}
-```
-
-
-```{r}
-test <- subset(heatmap_dataframe, select = -`HNF1-beta`)
-pdf(
-  "/data/user/tchowton/230323_JW_DiseaseNetworks/results/ProportionsHeatMap.pdf"
-)
 Heatmap(
-  test,
-  name = "Proportion",
+  proportions_matrix,
+  show_row_dend = FALSE,
   show_column_dend = FALSE,
-  show_row_dend = FALSE
+  name = "Proportion",
+  col = col_fun,
+  layer_fun = function(j, i, x, y, width, height, fill) {
+        v = pindex(pval_mat, i, j)
+        l = v < 0.05
+        gb = textGrob("*")
+        gb_h = convertHeight(grobHeight(gb), "mm")
+        grid.text(sprintf("*"), x[l], y[l] - gb_h*0.3, gp = gpar(fontsize = 15))
+  }
 )
 dev.off()
 ```
-
-
-
-
-
-
-
 
