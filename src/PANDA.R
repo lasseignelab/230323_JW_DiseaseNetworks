@@ -65,7 +65,7 @@ rownames(collapsed_expression) <- collapsed_expression$HGNC
 collapsed_expression <- collapsed_expression[, -which(names(collapsed_expression) == "HGNC")] 
 print("ENSG converted to HGNC for human expression input")
 
-expression <- collapsed_expression #renaming for input for PANDA
+expression <- log2(collapsed_expression + 1) #log normalizing and renaming for input for PANDA
 
 #run panda on multi-omic inputs
 pandaResults <- makePanda(motif, ppi, expression)
