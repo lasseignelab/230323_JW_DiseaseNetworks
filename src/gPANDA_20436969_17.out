@@ -8,3 +8,11 @@
 [1] "ppi loaded"
 [1] "expression loaded"
 [1] "ENSG version IDs and PARs removed"
+[1] 63811   659
+[1] "Data collapsed based off of ENSG ID and ENSG moved to rownames"
+[1] "returning CoSIA object..."
+[1] "Check first converted ID"
+  h_sapiens_ensembl_id h_sapiens_symbol
+1      ENSG00000000003           TSPAN6
+[1] "Check first matched ID"
+[1] "TSPAN6"
