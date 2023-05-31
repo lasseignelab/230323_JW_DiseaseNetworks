@@ -1,0 +1,15 @@
+gene,disease,reference
+PKD1,ADPKD,several
+PKD2,ADPKD,several
+GANAB,ADPKD,cordido2017
+PKHD1,ARPKD,several
+DZIPL1,ARPKD,cordido2021
+CYS1,ARPKD,yang2021
+TSC2,TSC,cordido2021
+HNF1-beta,HNF1betaDiease,cordido2021;yang2021
+MUC1,NPHP,cordido2021
+UMOD,NPHP,cordido2021
+NPHP2,NPHP,yang2021
+NPHP3,NPHP,yang2021
+NPHP13,NPHP,yang2021
+VHL,VonHippel-Lindau,cordido2021
