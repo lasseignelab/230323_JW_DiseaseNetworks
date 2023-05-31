@@ -1,4 +1,4 @@
-FROM bioconductor/bioconductor_docker:RELEASE_3_14
+FROM clarkad/rdrd_cosia1.5:1.0.2
 
 # location for mounting
 #RUN mkdir /home/rstudio/data
@@ -13,15 +13,19 @@ RUN R -e 'install.packages(c("tidyverse", "remotes",  "BiocManager", "devtools",
 
 #### Project Specific CRAN Packages ####
 # RUN R -e 'install.packages(c("# insert CRAN Packages here #"))'
+RUN R -e 'install.packages(c("dendextend","NMF", "SoupX", "fgsea", "gprofiler2", "circlize", "msigdbr", "enrichR", "lattice", "grr", "rafalib", "markdown", "reticulate", "fields", "KernSmooth", "ROCR", "paralell", "pheatmap", "ggplot2", "Matrix.utils", "readr", "dplyr", "igraph", "reshape2", "visNetwork", "RColorBrewer", "plotly", "data.table", "cowplot", "magrittr", "Matrix", "purrr", "tibble", "png", "hdf5r"))'
 
 #### Project Specific GitHub Packages ####
 # RUN R -e 'devtools::install_github("# insert GitHub repos here #")'
 
 # RUN R -e 'remotes::install_github("# insert GitHub repos here #")'
+RUN R -e 'remotes::install_github(repo = "netZoo/netZooR", ref = "master")'
+RUN R -e 'remotes::install_github("llrs/topGO")'
 
 #### Project Specific Bioconductor Packages ####
 
 # RUN R -e 'BiocManager::install(c("# insert Bioconductor Packages here #""))'
+RUN R -e 'BiocManager::install(c("GOSemSim", "clusterProfiler" ,"DOSE", "enrichplot", "decoupleR", "GEOquery", "rrvgo", "AnnotationHub", "org.Mm.eg.db", "ComplexHeatmap", "scran", "limma", "Biobase", "scater", "edgeR", "S4vectors", "apeglm", "DESeq2"))'
 
 ##----------------------------------------------------------------------------##
 ## SYSTEM PACKAGES
@@ -59,4 +63,4 @@ RUN apt-get install --yes \
 # RUN pip3 install #pythonPackageHere
 
 
-
+#### Note on docker version: docker://jordanwhitlock/jw_diseasenetworks:1.0.0
