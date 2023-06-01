@@ -18,3 +18,8 @@
 [1] "TSPAN6"
 [1] "ENSG converted to HGNC for human expression input"
 [1] "Initializing and validating"
+[1] "Verified sufficient samples"
+[1] "Normalizing networks..."
+[1] "Learning Network..."
+[1] "Using tanimoto similarity"
+[1] "gtex_ADIPOSE_TISSUE_PANDA network made and saved."

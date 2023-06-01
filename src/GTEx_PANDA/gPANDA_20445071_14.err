@@ -97,3 +97,24 @@ Iteration24: hamming distance =0.03641
 Iteration25: hamming distance =0.0303
 Iteration26: hamming distance =0.02518
 Iteration27: hamming distance =0.0209
+Iteration28: hamming distance =0.01732
+Iteration29: hamming distance =0.01435
+Iteration30: hamming distance =0.01187
+Iteration31: hamming distance =0.00981
+Iteration32: hamming distance =0.0081
+Iteration33: hamming distance =0.00669
+Iteration34: hamming distance =0.00551
+Iteration35: hamming distance =0.00454
+Iteration36: hamming distance =0.00374
+Iteration37: hamming distance =0.00308
+Iteration38: hamming distance =0.00253
+Iteration39: hamming distance =0.00208
+Iteration40: hamming distance =0.00171
+Iteration41: hamming distance =0.00141
+Iteration42: hamming distance =0.00116
+Iteration43: hamming distance =0.00095
+Successfully ran PANDA on 22932 Genes and 712 TFs.
+Time elapsed:3758.5seconds.
+Warning message:
+In cor(t(expr), method = cor.method, use = "pairwise.complete.obs") :
+  the standard deviation is zero
