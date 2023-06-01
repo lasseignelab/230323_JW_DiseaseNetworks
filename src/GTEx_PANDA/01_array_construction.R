@@ -1,5 +1,5 @@
 # NOTE: be sure to run this script to set up list of files BEFORE constructing networks with '02_PANDA_array.sh' bash script. 
-# This script was run inside of JW docker container jordanwhitlock/setbp1_manuscript:1.0.6 (setbp1_manuscript_1.0.6.sif) using Singularity/3.5.2-GCC-5.4.0-2.26 
+# This script was run inside of JW docker container jordanwhitlock/setbp1_manuscript:1.0.5 (setbp1_manuscript_1.0.5.sif) using Singularity/3.5.2-GCC-5.4.0-2.26 
 set.seed(2178)
 
 ##Load libraries
