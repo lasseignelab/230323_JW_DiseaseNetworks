@@ -25,10 +25,10 @@ getwd()
 args <- R.utils::commandArgs(trailingOnly = TRUE)
 
 #load in the input data needed
-motif <- read.table(file = "/data/user/jbarham3/230323_JW_DiseaseNetworks/data/hu_motif_all.txt", sep = "\t") #load in motif data
+motif <- read.table(file = "/data/user/jbarham3/230323_JW_DiseaseNetworks/results/PANDA_inputs/hu_motif_all.txt", sep = "\t") #load in motif data
 print("motif loaded")
 
-ppi <- read.table(file = "/data/user/jbarham3/230323_JW_DiseaseNetworks/data/hg38_ppi.txt", sep = "\t") #load in ppi data
+ppi <- read.table(file = "/data/user/jbarham3/230323_JW_DiseaseNetworks/results/PANDA_inputs/hg38_ppi.txt", sep = "\t") #load in ppi data
 print("ppi loaded")
 
 expression <- read.csv(args[1]) #load expression data from .Rdata in here from $SAMPLE_LIST
