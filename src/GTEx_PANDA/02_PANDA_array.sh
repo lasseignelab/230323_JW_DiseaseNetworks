@@ -25,11 +25,11 @@
 module load Singularity/3.5.2-GCC-5.4.0-2.26
 
 #variables
-wd="/data/user/jbarham3/230323_JW_DiseaseNetworks"
-src="/data/user/jbarham3/230323_JW_DiseaseNetworks/src" #be sure that your subdirectories are structured the same
+wd="$USER_DATA/230323_JW_DiseaseNetworks"
+src="$USER_DATA/230323_JW_DiseaseNetworks/src" #be sure that your subdirectories are structured the same
 
 export SINGULARITYENV_PASSWORD='pass'
-export SINGULARITYENV_USER='jbarham3'
+export SINGULARITYENV_USER='$USER'
 
 #code to execute docker and script for analysis
 cd ${wd}
@@ -40,4 +40,4 @@ SAMPLE_ARRAY=(`cat ${SAMPLE_LIST}`) # parantheses instruct bash to create a shel
 INPUT=`echo ${SAMPLE_ARRAY[$SLURM_ARRAY_TASK_ID]}` #extracts a single input from the array and prints (using echo) it into INPUT variable, each single input is then assigned an array number by $SLURM_TASK_ID
 
 # NOTE user must have already pulled from docker and built .sif file with singularity below (jordanwhitlock/setbp1_manuscript_panda_1.0.1)
-singularity exec --cleanenv --containall -B ${wd} -B /data/project/lasseigne_lab/DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/ /data/user/jbarham3/230323_JW_DiseaseNetworks/bin/PANDA_construction_docker/jw_diseasenetworks_1.0.0.sif Rscript --vanilla ${src}/GTEx_PANDA/PANDA.R ${INPUT} # here vanilla ensures only the script is run and environment is kept clean
+singularity exec --cleanenv --containall -B ${wd} -B /data/project/lasseigne_lab/DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/ $USER_DATA/230323_JW_DiseaseNetworks/bin/PANDA_construction_docker/jw_diseasenetworks_1.0.6.sif Rscript --vanilla ${src}/GTEx_PANDA/PANDA.R ${INPUT} # here vanilla ensures only the script is run and environment is kept clean
