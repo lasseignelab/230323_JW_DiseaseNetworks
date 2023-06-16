@@ -71,6 +71,7 @@ expression <- log2(collapsed_expression + 1) #log normalizing and renaming for i
 #run panda on multi-omic inputs
 pandaResults <- makePanda(motif, ppi, expression)
 name <- sub("_tpm.csv", "", basename(args[1]))
+if (!dir.exists(here("results/PANDA/"))) dir.create(here("results/PANDA/")) #check if results/PANDA exists, create if not
 save(pandaResults, file = paste0(here("results/PANDA/"), name, "_PANDA.Rdata"))
 rm(pandaResults)
 print(paste0(name, "_PANDA network made and saved."))
