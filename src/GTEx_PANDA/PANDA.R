@@ -8,22 +8,25 @@ set.seed(2178)
 print("seed set")
 
 #load in package libraries
-library(here)
+#library(here)
 library(netZooR)
 library(data.table)
 library(CoSIA)
 
-#load in functions
-source(here("src/functions.R"))
-print("libraries and functions loaded")
-
-#getwd() #output wd
-#setwd("/data/user/jbarham3/230323_JW_DiseaseNetworks/")
-#getwd()
-#.libPaths() #output libPath
-
 #enable args
 args <- R.utils::commandArgs(trailingOnly = TRUE)
+
+#change directory
+#getwd() #output wd
+#setwd("/data/user/jbarham3/230323_JW_DiseaseNetworks/")
+setwd(args[1])
+print(getwd())
+#.libPaths() #output libPath
+
+#load in functions
+source("./src/functions.R")
+print("libraries and functions loaded")
+
 
 #load in the input data needed
 motif <- read.table(file = "/data/project/lasseigne_lab/JordanWhitlock/230323_JW_DiseaseNetworks/data/hu_motif_all.txt", sep = "\t") #load in motif data
@@ -32,7 +35,7 @@ print("motif loaded")
 ppi <- read.table(file = "/data/project/lasseigne_lab/JordanWhitlock/230323_JW_DiseaseNetworks/data/hg38_ppi.txt", sep = "\t") #load in ppi data
 print("ppi loaded")
 
-expression <- read.csv(args[1]) #load expression data from .Rdata in here from $SAMPLE_LIST
+expression <- read.csv(args[2]) #load expression data from .Rdata in here from $SAMPLE_LIST
 print("expression loaded")
 
 # formatting expression data
@@ -70,8 +73,8 @@ expression <- log2(collapsed_expression + 1) #log normalizing and renaming for i
 
 #run panda on multi-omic inputs
 pandaResults <- makePanda(motif, ppi, expression)
-name <- sub("_tpm.csv", "", basename(args[1]))
-if (!dir.exists(here("results/PANDA/"))) dir.create(here("results/PANDA/")) #check if results/PANDA exists, create if not
-save(pandaResults, file = paste0(here("results/PANDA/"), name, "_PANDA.Rdata"))
+name <- sub("_tpm.csv", "", basename(args[2]))
+if (!dir.exists("./results/PANDA/")) dir.create("./results/PANDA/") #check if results/PANDA exists, create if not
+save(pandaResults, file = paste0("./results/PANDA/", name, "_PANDA.Rdata"))
 rm(pandaResults)
 print(paste0(name, "_PANDA network made and saved."))
