@@ -1,0 +1,151 @@
+---
+title: "pkd_TS_edgesVSexp"
+author: "<YOUR NAME>"
+date: "2023-05-17"
+output:
+    html_document:
+      toc: true
+      toc_depth: 4
+      toc_float: true
+
+---
+load in packages
+```{r}
+library(tidyverse)
+#setwd("/data/user/lizzyr/230323_JW_DiseaseNetworks/")
+library(here)
+library(ggplot2)
+```
+
+##Purpose  
+
+##Data
+load in RData file from Sonawane et al.
+```{r}
+load(here("data/GTEx_PANAD_Tissues.Rdata"))
+```
+
+read in PKD-associated gene csv
+```{r}
+pkd_genes <- read.csv(file = here("data/pkd_associated_genes_renamed.csv"), row.names = 1)  
+```
+
+ read in PKD-genes specific edges and full annotation/tissue specific PKD-genes expression value table
+```{r}
+
+pkd_expTS <- read.csv(here("results/pkd_expTS_fullannotation.csv"), row.names = 1)
+
+pkd_edgesTS <- read.csv(here("results/pkd_edgesTS.csv"), row.names = 1)
+```
+
+
+## Edges vs Expression
+annotate pkd_edgesTS for target genes from ensembl to symobl
+```{r}
+pkd_genes_anno <- select(pkd_expTS, "gene", "Name")
+
+pkd_edgesTS_anno <- pkd_edgesTS %>%
+  inner_join(., pkd_genes_anno, by = c("Gene" = "Name")) %>% 
+  rename(Target_Gene = gene)
+```
+
+combine PKD-gene-associattes edge and expression data
+```{r}
+#pkd_edgesTS_anno <- pkd_edgesTS_anno %>% 
+  select(., !c("Gene", "Prior", "Index")) %>% 
+  unite("TF_Target", TF, Target_Gene) %>% 
+  column_to_rownames(., var = "TF_Target")
+
+#pkd_edgesVSexp <- pkd_expTS %>% 
+  select(., !c("Name", "orig_gene", "disease", "reference", "AlsoTF", "Multiplicity")) %>%
+  column_to_rownames(., var = "gene") %>% 
+  rbind(., pkd_edgesTS_anno)
+```
+
+fxn to filter out all-zero tissues and edges and run correlation of the specific edges across tissues
+```{r}
+edge_cor <- function(exp2edges, gene){
+t <- exp2edges %>% dplyr::filter(., Shared_Edges > 0) %>% select(!c("Shared_Edges")) #%>%
+#t2 <- colSums(t)#cor()
+t2 <- t[,colSums(t) > 0]
+tcor <- cor(t2)
+#png(paste0("../results/edge_corr_TStissue_heatmap_", gene, ".csv"))
+ComplexHeatmap::Heatmap(tcor)
+#dev.off()
+}
+
+tt <- edge_cor(exp2edges)
+tt
+```
+
+for each gene, find TS expression and TS targetting
+```{r}
+compare_exp2edge <- function(TSexp, TSedges){
+  #remove unneeded columns
+  TSedges <- select(TSedges, !c("Gene", "Prior", "Index"))
+  TSexp <- select(TSexp, !c("Name", "orig_gene", "disease", "reference", "AlsoTF", "Multiplicity"))
+  #compare each  gene's TS expression to TS edges
+  for(i in 1:nrow(TSexp)){
+    gene <- TSexp$gene[i]
+    #print(gene)
+    ex <- TSexp %>% 
+      filter(., "gene" == gene)  %>%
+      column_to_rownames(., var = "gene")
+    
+    compar <- TSedges %>% 
+      filter(., Target_Gene == gene) %>% 
+      unite("TF_Target", TF, Target_Gene) %>% 
+        column_to_rownames(., var = "TF_Target") %>% 
+      rbind(., ex) %>%  mutate(., Shared_Edges = rowSums(.), .before = 1) %>% arrange(., desc(Shared_Edges))
+      
+    write.csv(compar, file = paste0("../results/pkd_TS_exp_vs_edges_", gene, ".csv"))
+    #comb_list[i] <- compar
+     edge_cor(compar, gene)
+  }
+}
+
+compare_exp2edge(pkd_expTS, pkd_edgesTS_anno)
+```
+
+plot
+```{r}
+pkd_TS_exp_vs_edges_PKD1 <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_PKD1.csv", row.names = 1)
+
+#df <- pkd_TS_exp_vs_edges_PKD1[rowSums(pkd_TS_exp_vs_edges_PKD1[])>0,]
+#t <- pkd_TS_exp_vs_edges_PKD1 %>%  mutate(rowwise(.), Shared_Edges = sum(c_across(everything())))
+
+t <- pkd_TS_exp_vs_edges_PKD1 %>% select(!c("Shared_Edges")) %>% column_to_rownames(var = "...1") %>% cor()
+
+exp2edges <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_PKD2.csv", row.names = 1)
+
+t <- exp2edges %>% dplyr::filter(., Shared_Edges > 0) %>% select(!c("Shared_Edges")) #%>%
+t2 <- colSums(t)#cor()
+t2 <- t[,colSums(t) > 0]
+tcor <- cor(t2)
+
+exp2edges <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_NPHP3.csv", row.names = 1)
+
+t <- exp2edges %>% select(!c("Shared_Edges")) %>% cor()
+
+#mutate(., Shared_Edges = )
+
+  #pivot_longer(cols = !c("X"), names_to = "Tissue", values_to = "Tissue_Specific") %>% ggplot(., aes(x = Tissue_Specific, y = Tissue)) + geom_dotplot()
+
+#p <- t %>% rownames_to_column(., var = "Edge") %>% select(Edge, Shared_Edges) %>% ggplot(., aes(x #= Edge, y = Shared_Edges)) + geom_dotplot()
+#p
+pkd1 <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_PKD1.csv", row.names = 1)
+pkhd1 <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_PKHD1.csv", row.names = 1)
+pkd2 <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_PKD2.csv", row.names = 1)
+ganab <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_GANAB.csv", row.names = 1)
+nphp3 <- read.csv("/data/user/lizzyr/230323_JW_DiseaseNetworks/results/pkd_TS_exp_vs_edges_NPHP3.csv", row.names = 1)
+
+edge_cor(pkd1, pkd1)
+
+edge_cor(pkhd1, pkd1)
+
+edge_cor(pkd2, pkd1)
+
+edge_cor(ganab, pkd1)
+
+edge_cor(nphp3, pkd1)
+```

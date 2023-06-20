@@ -87,27 +87,6 @@ write.csv(pkd_expTS_min, here("results/pkd_expTS_filtered.csv"))
 ## Visualize
 annotation
 ```{r}
-# pkd_dis <- pkd_gene_anno$disease
-# names(pkd_dis) <- pkd_gene_anno$gene
-# 
-# pkd_mult <- pkd_gene_anno$Multiplicity
-# names(pkd_mult) <- pkd_gene_anno$gene
-# 
-# row_ha <- ComplexHeatmap::rowAnnotation(Disease = pkd_dis, 
-#                                         Multiplicity = pkd_mult,
-#                                         #colors
-#                                         col = list(
-#                                           Disease = c("ADPKD" = viridis::cividis(6)[1],
-#                                                       "ARPKD" = viridis::cividis(6)[2],
-#                                                       "TSC" = viridis::cividis(6)[3], 
-#                                                       "HNF1betaDiease" = viridis::cividis(6)[4],
-#                                                       "NPHP" = viridis::cividis(6)[5],
-#                                                       "VonHippel-Lindau" = viridis::cividis(6)[6]
-#                                                       ))) 
-# row_anno <- pkd_gene_anno %>% arrange(desc(Multiplicity)) %>% mutate(., gene = factor(gene, levels = gene))  %>% select(., Gene = gene, Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
-# rownames(row_anno) <- row_anno$Gene
-#  row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno)
- 
 row_anno <- pkd_expTS_min %>% rownames_to_column(., var = "gene") %>% left_join(., pkd_gene_anno, by = c("gene" )) %>% column_to_rownames(., var = "gene") %>% select(., Disease = disease, TF = AlsoTF, Multiplicity = Multiplicity)
 
 rownames(row_anno) <- row_anno$Gene
@@ -121,19 +100,7 @@ row_ha <- ComplexHeatmap::rowAnnotation(df = row_anno, col = list(
                                                       "VonHippel-Lindau" = viridis::cividis(6)[6]), TF = c("no" = viridis::mako(3)[1],
                     "yes/no-motif" = viridis::mako(3)[2],                                                  "yes/motif"  = viridis::mako(3)[3]
                                                       ) ))
-#                                         #, Multiplicity = c()))
 
-# auto_ha <- function(feature, featurename){
-#   row_ha <- NULL
-#   palsize <- length(unique(feature))
-#   for(i in 1:length(unique(feature))){
-#    temp <- ComplexHeatmap::rowAnnotation(featurename = feature, 
-#                                         #Multiplicity = pkd_gene_anno$Multiplicity,
-#                                         #colors
-#                                         col = list(featurename = c(paste(unique(feature)[i]) = viridis::rocket(palsize)[i])))
-#    row_ha <- cbind(row_ha, temp)
-#   }
-# }
 ```
 
 ####Heatmap
