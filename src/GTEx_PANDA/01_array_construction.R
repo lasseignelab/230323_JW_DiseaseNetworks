@@ -10,19 +10,4 @@ library(utils)
 files <- list.files("/data/project/lasseigne_lab/DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/tpm/individual", full.names = TRUE) # ensure that ALL exppression inputs for PANDA are in the same directory and that nothing else is in the directory.
 files #save this as a text file to be the array file
 
-write.table(files, file = here("results/array_inputs/GTEx_exp_files.txt"), sep = "\t", row.names = FALSE, col.names = FALSE) # for other data user may want to change file name
-
-##Remove " " around each file path
-
-# Specify the input and output file paths
-input_file <- here("results/array_inputs/GTEx_exp_files.txt")
-output_file <- here("results/array_inputs/GTEx_exp_files_array.txt")
-
-# Read the input file line by line
-lines <- readLines(input_file)
-
-# Remove quotes from each line
-modified_lines <- gsub("\"", "", lines)
-
-# Write the modified lines to the output file
-writeLines(modified_lines, output_file)
+write.table(files, file = here("results/array_inputs/GTEx_exp_files_array.txt"), sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE) # for other data user may want to change file name
