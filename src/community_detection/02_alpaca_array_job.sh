@@ -15,7 +15,7 @@
 #
 #SBATCH --output=%x_%A_%a.out
 #SBATCH --error=%x_%A_%a.err
-#SBATCH --array=1-25 #50 files
+#SBATCH --array=1-465 #31 tissue files paired with each other to make 465 pairings of files
 
 ########################################
 ### PUT YOUR COMMANDS BELOW THIS BOX ###
@@ -23,7 +23,7 @@
 module load R
 module load Singularity/3.5.2-GCC-5.4.0-2.26
 
-wd=/data/user/jbarham3/230227_JW_Setbp1Manuscript
+wd=/data/user/jbarham3/230323_JW_DiseaseNetworks
 
 export SINGULARITYENV_PASSWORD='pass'
 export SINGULARITYENV_USER='jbarham3'
