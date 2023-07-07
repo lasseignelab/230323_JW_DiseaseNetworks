@@ -5,7 +5,7 @@ set.seed(2178)
 library(dplyr)
 library(decoupleR)
 library(CoSIA)
-source("./src/functions.R")
+source("/data/user/jbarham3/230323_JW_DiseaseNetworks/src/functions.R")
 
 # Fetch command line arguments
 args <- commandArgs(trailingOnly = TRUE)
