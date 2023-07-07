@@ -9,28 +9,13 @@ suppressPackageStartupMessages({
 
 # list all subsetted files
 setbp1_files <- list.files(path = here("results/SETBP1_Expression/"), pattern = "_targets_tpm.csv", all.files = TRUE, full.names = TRUE)
-#TEST SET
-#setbp1_files <- setbp1_files[1:2]
-
-# function to calculate median TPM values across samples for each file
-# calc_median_tpm <- function(file){
-#   tpm <- read.csv(file, row.name = 1)
-#   median_tpm <- tpm %>% dplyr::select(., starts_with("GTEX")) %>% apply(., 1, median)
-#   median_tpm <- tpm %>% mutate(., Median = median_tpm, .after = "Tissue")
-#   
-# return(median_tpm)  
-# }
-
-#test out fxn
-test <- calc_median_tpm(setbp1_files[1])
-test2 <- pull_median_tpm(test)
-test3 <- get_gtex_median_tpm(setbp1_files[1])
 
 # calculate median tpm of each gene for each tissue and compile list
 tissues_median_tpm <- map_dfc(setbp1_files, get_gtex_median_tpm)
 # remove any columns with NAs
 tissues_median_tpm <- tissues_median_tpm %>% select_if(~ !any(is.na(.)))
 
+## VIOLIN PLOT
 p <- tissues_median_tpm %>% 
   pivot_longer(cols = everything(), names_to = "Tissue", values_to = "Median_TPM") %>% 
   mutate(Median_TPM = log1p(Median_TPM), .keep = "unused") %>%
@@ -43,9 +28,10 @@ p <- tissues_median_tpm %>%
   #scale_y_continuous(trans = "pseudo_log") + 
 #add boxplot 
 p <- p + geom_boxplot(width = 0.1)
-ggsave("./results/testviolin.png")
+ggsave(here("results/SETBP1_Expression/plots/median_tpm_scaled_violin.png"))
 
-png(here("results/test.png"), width = 25, height = 30, units = "cm", res = 300)
+## HEATMAP
+png(here("results/SETBP1_Expression/plots/median_tpm_heatmap.png"), width = 25, height = 30, units = "cm", res = 300)
 set.seed(1)
 ComplexHeatmap::Heatmap(as.matrix(tissues_median_tpm), row_labels = rownames(tissues_median_tpm)) 
 
