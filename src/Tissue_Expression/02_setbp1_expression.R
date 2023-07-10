@@ -11,21 +11,27 @@ suppressPackageStartupMessages({
 # load in the input data needed
 setbp1_targets <- read.csv(file = here("data/SETBP1_Targets/setbp1_targets_geneconversions.csv"), row.names = 1)
 projects <- readLines("./results/array_inputs/GTEx_exp_files_array.txt")
+#test set
+#projects <- projects[9]
 
 startTime <- Sys.time()
 for(i in 1:length(projects)){
   expression <- read.csv(projects[i]) 
   expression$X <- gsub("\\.\\d+$", "", expression$X) # stripping ENSG versions
   
-  # filter for expression of just the setbp1 targets
-  target_expression <- setbp1_targets %>% dplyr::select(., name, target, description) %>% inner_join(., expression, by = c("target" = "X"))
-
   # finding tissue name
   tissue <- str_extract(projects[i], "(?<=gtex_).*?(?=_tpm)")
+  
+  # filter for expression of just the setbp1 targets
+  target_expression <- setbp1_targets %>% 
+    dplyr::select(., name, target, description) %>% 
+    inner_join(., expression, by = c("target" = "X")) %>% 
+    mutate(., "Tissue" = tissue, .after = "description")
+
   
   # saving results
   if (!dir.exists("./results/SETBP1_Expression/")) dir.create("./results/SETBP1_Expression/")
   write.csv(target_expression, file = paste0("./results/SETBP1_Expression/", tissue, "_SETBP1_targets_tpm.csv"))
 }
 endTime <- Sys.time()
-print(endTime - startTime)
+print(endTime - startTime) #Time difference of 22.84641 mins
