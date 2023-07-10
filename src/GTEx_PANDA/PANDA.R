@@ -1,7 +1,8 @@
 # NOTE: please create a '.Rprofile' file in your project directory in the same location as your '.Rproj' file. 
 # Include a single line with the following code: `R_PROFILE_USER=""`
 # This will address any normalizePath warnings looking for the home directory which is not bound within the container
-# This script is caled upon and run within the 02_PANDA_array.sh script
+# This script is called upon and run within the 02_PANDA_array.sh script
+# This script reads in the TF-motif, ppi, and expression data, converts IDs from ENSG to HGNC symbol for GTEx expression data, and then constructs and saves PANDA objects.
 
 #set seed
 set.seed(2178)

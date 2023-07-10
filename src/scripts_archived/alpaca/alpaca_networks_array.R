@@ -65,13 +65,13 @@ input2 <- as.data.frame(reg_net2) %>% mutate(TF = rownames(reg_net2)) %>% pivot_
 alpaca_input <- merge(input1, input2, by = c("TF", "gene"))
 
 # Specify output path
-alpaca_result <- alpaca(alpaca_input, file.stem = paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/alpaca/main/", gtex_tissue1, "_", tissue_type1, ".RData", sep="")
+alpaca_result <- alpaca(alpaca_input, file.stem = paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/alpaca/main/", gtex_tissue1, "_", tissue_type1, "_", gtex_tissue2, "_", tissue_type2, ".RData", sep="")
 , verbose = TRUE)
 alpaca_mat <- alpaca_result[[1]] 
 alpaca_membership <- as.vector(alpaca_mat)
 names(alpaca_membership) <- names(alpaca_mat)
   
-save(alpaca_membership, file = paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/alpaca/membership/", gtex_tissue1, "_", tissue_type1, "_membership.RData", sep=""))
+save(alpaca_membership, file = paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/alpaca/membership/", gtex_tissue1, "_", tissue_type1, "_", gtex_tissue2, "_", tissue_type2, "_membership.RData", sep=""))
 
 
 # Print the extracted information
