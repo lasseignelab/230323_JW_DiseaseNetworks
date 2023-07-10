@@ -84,3 +84,4 @@ The following object is masked from 'package:igraph':
 
 Warning message:
 In normalizePath("~") : path[1]="/home/jbarham3": No such file or directory
+Weights detected. Building condor object with weighted edges.

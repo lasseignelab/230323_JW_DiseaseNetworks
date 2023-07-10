@@ -7,3 +7,4 @@ Tissue tType: ESOPHAGUS
 File path: /data/user/jbarham3/230323_JW_DiseaseNetworks/results/PANDA/gtex_ESOPHAGUS_PANDA.Rdata 
 [1] "Loading in the PANDA network and formatting for CONDOR..."
 Condor input dimensions: 16326872 3 
+[1] "Detecting communities in network..."
