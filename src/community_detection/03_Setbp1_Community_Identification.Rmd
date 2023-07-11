@@ -1,11 +1,11 @@
 ---
-title: "02_Setbp1_Community_Identification"
+title: "03_Setbp1_Community_Identification"
 author: "Jordan Whitlock"
 date: '2023-06-28'
 output: html_document
 ---
 
-Goal: Determine what Community Number TF Setbp1 is contained in for every single cell type in both tissues. This is needed for JI comparisons between Sebtp1 communities in following script.
+Goal: Determine what Community Number TF and gene Setbp1 is contained in for every single cell type in both tissues. This is needed for JI comparisons between Sebtp1 communities in following script.
 
 ```{r}
 set.seed(2178)
