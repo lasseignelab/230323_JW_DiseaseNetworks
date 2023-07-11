@@ -15,7 +15,7 @@
 #
 #SBATCH --output=%x_%A_%a.condor.out
 #SBATCH --error=%x_%A_%a.condor.err
-#SBATCH --array=1-31 # 31 tissue files
+#SBATCH --array=0-31 # 31 tissue files
 
 ########################################
 ### PUT YOUR COMMANDS BELOW THIS BOX ###
