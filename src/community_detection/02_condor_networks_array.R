@@ -65,13 +65,13 @@ print("Detecting modularity...")
 condor_result <- condorQscore(condor_result)
 
 print("Saving Condor object")
-save(condor_result, file = paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/condor/main/", gtex_tissue, "_", tissue_type, "_condor.RData", sep="")) 
+save(condor_result, file = paste0("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/condor/main/", gtex_tissue, "_", tissue_type, "_condor.RData", sep="")) 
 
 print("Extracting and saving membership...")
 condor_memb <- c(condor_result$red.memb[,2],condor_result$blue.memb[,2])
 names(condor_memb) <- c(as.character(condor_result$red.memb[,1]),as.character(condor_result$blue.memb[,1]))
-save(condor_memb, file = paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/condor/membership/", gtex_tissue, "_", tissue_type, "_membership.RData", sep=""))
-write.csv(condor_memb, file = paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/condor/membership/", gtex_tissue, "_", tissue_type, "_membership.csv", sep=""))
+save(condor_memb, file = paste0("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/condor/membership/", gtex_tissue, "_", tissue_type, "_membership.RData", sep=""))
+write.csv(condor_memb, file = paste0("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/condor/membership/", gtex_tissue, "_", tissue_type, "_membership.csv", sep=""))
 
 print(paste("Analysis Complete for", gtex_tissue, tissue_type))
       
