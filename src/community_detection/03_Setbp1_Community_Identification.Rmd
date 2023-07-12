@@ -5,9 +5,10 @@ date: '2023-06-28'
 output: html_document
 ---
 
-Goal: Determine what Community Number TF and gene Setbp1 is contained in for every single cell type in both tissues. This is needed for JI comparisons between Sebtp1 communities in following script.
+Goal: Determine what Community Number TF and gene Setbp1 is contained in for every single cell type in both tissues. This is needed for Jaccard similarity comparisons between SETBP1 communities in following script.
 
-```{r}
+
+```{r loading-libraries-seed-proctime}
 set.seed(2178)
 library(here)
 library(tidyverse)
@@ -16,14 +17,15 @@ library(dplyr)
 ptm <- proc.time()
 ```
 
-```{r}
+
+```{r loading-geneset}
 # load in gene set for Setbp1
 setbp1_genes <- read.csv(here("results/setbp1_targets.csv"))
 setbp1_genes <- setbp1_genes[, -1] %>% as.vector()
 setbp1_genes <- append(setbp1_genes, "Setbp1") %>% toupper()
 ```
 
-```{r cortex-diff-mod-comm-members-of-setbp1}
+```{r diff-comm-members-of-setbp1}
 pattern <- "_membership.RData"
 directory <- here("results/condor/membership")
 files <- list.files(directory, pattern = paste0(".*", pattern), full.names = TRUE)
@@ -66,7 +68,7 @@ for (t in 1:length(toevaluate)) {
 names(condor_list) <- toevaluate
 ```
 
-```{r cortex-diff-mod-comm-members-of-setbp1-targets}
+```{r diff-comm-members-of-setbp1-targets}
 # Subset each dataframe for Setbp1 gene set in the list and annotate with the list name
 subset_dfs <- lapply(names(condor_list), function(list_name) {
   df <- condor_list[[list_name]]
@@ -84,7 +86,7 @@ write.csv(setbp1_communities,
           row.names = FALSE)
 ```
 
-# filter for Setbp1 to determine its community number as a TF for each cell type for Jaccard Index analysis
+# filter for SETBP1 to determine its community number as a TF for each cell type for Jaccard Index analysis
 ```{r}
 # Filter rows where "name" is "Setbp1"
 filtered_df <- setbp1_communities %>%
@@ -109,7 +111,29 @@ BRAIN	1
 BREAST	1			
 CERVIX_UTERI	2	
 
-# filter for Setbp1 to determine its community number as a gene for each cell type for Jaccard Index analysis
+# generate SETBP1 TF community pairing vector for Jaccard similarity comparison analysis
+```{r}
+# remove underscores in tissue_type column (example: "ADIPOSE_TISSUE", "ADIPOSETISSUE") for downstream analysis
+filtered_df$tissue_type <- gsub("_", "", filtered_df$tissue_type)
+
+# create column containing `tissue_type`_`condor_memb`
+filtered_df <- filtered_df %>% mutate(barcode = paste(tissue_type, condor_memb, sep = "_"))
+
+# Get all possible combinations of row values
+combinations <- combn(filtered_df$barcode, 2, FUN = function(x) paste(x, collapse = "_"))
+
+# Store combinations in a vector
+combinations_vector_setbp1_TF <- unlist(combinations)
+
+# Print the resulting vector
+print(combinations_vector_setbp1_TF)
+
+# save vector for Jaccard similarity
+save(combinations_vector_setbp1_TF, file = here("results/condor/setbp1_TF_combinations_vector.Rdata"))
+```
+
+
+# filter for SETBP1 to determine its community number as a gene for each cell type for Jaccard Index analysis
 ```{r}
 # Filter rows where "name" is "Setbp1"
 filtered_df <- setbp1_communities %>%
@@ -155,6 +179,28 @@ TESTIS	2
 THYROID	3			
 UTERUS	2			
 VAGINA	2	
+
+# generate SETBP1 gene community pairing vector for Jaccard similarity comparison analysis
+```{r}
+# remove underscores in tissue_type column (example: "ADIPOSE_TISSUE", "ADIPOSETISSUE") for downstream analysis
+filtered_df$tissue_type <- gsub("_", "", filtered_df$tissue_type)
+
+# create column containing `tissue_type`_`condor_memb`
+filtered_df <- filtered_df %>% mutate(barcode = paste(tissue_type, condor_memb, sep = "_"))
+
+# Get all possible combinations of row values
+combinations <- combn(filtered_df$barcode, 2, FUN = function(x) paste(x, collapse = "_"))
+
+# Store combinations in a vector
+combinations_vector_setbp1_gene <- unlist(combinations)
+
+# Print the resulting vector
+print(combinations_vector_setbp1_gene)
+
+# save vector for Jaccard similarity
+save(combinations_vector_setbp1_gene, file = here("results/condor/setbp1_gene_combinations_vector.Rdata"))
+```
+
 
 ```{r processing-time}
 fptm <- proc.time() - ptm
