@@ -5,7 +5,7 @@ date: '2023-07-11'
 output: html_document
 ---
 
-Goal: Identify the overlap between all community and tissue type pairings for each GTEx tissue as well as only between the Communities containing SETBP1 as a gene or TF. 
+Goal: Identify the overlap between all community and tissue type pairings for each GTEx tissue as well as only between the Communities containing SETBP1 as TF. 
 
 ```{r}
 set.seed(2178)
@@ -100,16 +100,26 @@ jaccard_df <- data.frame(tissuetype_module = names(jaccard_results), jaccard_ind
 # View the Jaccard results
 head(jaccard_df)
 
+# Look at distribution
+med_val <- median(jaccard_df$jaccard_index)
+med_val # 0.1035006, 4,004 pairings are below the median
+
 # Create a PNG file
-png(here("results", "condor", "setbp1_community_histogram.png"), width = 2000, height = 1500, res = 250)
+png(here("results", "condor", "setbp1_community_histogram.png"), width = 2500, height = 2500, res = 250)
 # Plot the histogram
+par(family = "Helvetica")
+
 setbp1_cortex_hist <- hist(jaccard_df$jaccard_index,
   main = "Distribution of Jaccard Index across tissues and communities",
   xlab = "Jaccard Index",
   ylab = "Frequency",
-  col = "#5F9EFD",
+  col = "#A468A9",
   border = "black"
 )
+
+abline(v = med_val, col = "red", lwd = 2, lty = 2)
+text(med_val, par("usr")[4] - 0.01 * diff(par("usr")[3:4]), "Median = 0.1035006", pos = 4, offset = 1, col = "red")
+
 dev.off()
 ```
 
@@ -143,44 +153,8 @@ rownames(tf_jaccard_setbp1_matrix) <- tf_matrix_df[[1]]
 # Create a PNG file
 png(here("results", "condor", "setbp1_tf_community_corrplot.png"), width = 5000, height = 3000, res = 250)
 # Plot the correlogram
-my_palette <- colorRampPalette(c("white", "#C4DAFD", "#7AABE2", "#0072B4", "#00366C"))
+my_palette <- colorRampPalette(c("white", "#D3B1C5", "#A468A9", "#533180", "#2C1D6C"))
 tf_setbp1_cortex_corr <- corrplot(tf_jaccard_setbp1_matrix, method = "circle", is.corr = FALSE, type = "upper", diag = FALSE, col = my_palette(100))
-dev.off()
-```
-
-
-# Find Jaccard Similarity between SETBP1 gene communities
-
-Load in tissue_community pairings to filter by:
-```{r}
-load(here("results/condor/setbp1_gene_combinations_vector.Rdata")) # combinations_vector_setbp1_gene in environment
-```
-
-
-```{r}
-setbp1_comm_filtered <- jaccard_df %>%
-  # separate the tissuetype_module column into two new columns: tissuetype1 and tissuetype2
-  separate(tissuetype_module, into = c("tissuetype1", "module1", "tissuetype2", "module2"), sep = "_")
-
-# filter rows where module numbers coresponding to SETBP1 TF.
-gene_df_filtered <- setbp1_comm_filtered %>%
-  filter(rownames(.) %in% combinations_vector_setbp1_gene) %>%
-  select(-module1, -module2)
-
-# create the matrix
-gene_matrix_df <- gene_df_filtered %>%
-  # reshape the data from long format to wide format
-  spread(key = tissuetype2, value = jaccard_index)
-
-# convert the dataframe to a matrix
-gene_jaccard_setbp1_matrix <- as.matrix(gene_matrix_df[-1])
-rownames(gene_jaccard_setbp1_matrix) <- gene_matrix_df[[1]]
-
-# Create a PNG file
-png(here("results", "condor", "setbp1_gene_community_corrplot.png"), width = 5000, height = 3000, res = 250)
-# Plot the correlogram
-my_palette <- colorRampPalette(c("white", "#C4DAFD", "#7AABE2", "#0072B4", "#00366C"))
-gene_setbp1_cortex_corr <- corrplot(gene_jaccard_setbp1_matrix, method = "circle", is.corr = FALSE, type = "upper", diag = FALSE, col = my_palette(100))
 dev.off()
 ```
 
