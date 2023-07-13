@@ -17,7 +17,6 @@ library(dplyr)
 ptm <- proc.time()
 ```
 
-
 ```{r loading-geneset}
 # load in gene set for Setbp1
 setbp1_genes <- read.csv(here("results/setbp1_targets.csv"))
@@ -109,7 +108,29 @@ BLOOD_VESSEL	3
 BONE_MARROW	3			
 BRAIN	1			
 BREAST	1			
-CERVIX_UTERI	2	
+CERVIX_UTERI	2			
+COLON	1			
+ESOPHAGUS	2			
+FALLOPIAN_TUBE	1			
+HEART	1			
+KIDNEY	1			
+LIVER	1			
+LUNG	2			
+MUSCLE	1			
+NERVE	1			
+OVARY	1			
+PANCREAS	1			
+PITUITARY	1			
+PROSTATE	1			
+SALIVARY_GLAND	1			
+SKIN	4			
+SMALL_INTESTINE	1			
+SPLEEN	1			
+STOMACH	1			
+TESTIS	3			
+THYROID	1			
+UTERUS	2			
+VAGINA	1	
 
 # generate SETBP1 TF community pairing vector for Jaccard similarity comparison analysis
 ```{r}
@@ -132,83 +153,12 @@ print(combinations_vector_setbp1_TF)
 save(combinations_vector_setbp1_TF, file = here("results/condor/setbp1_TF_combinations_vector.Rdata"))
 ```
 
-
-# filter for SETBP1 to determine its community number as a gene for each cell type for Jaccard Index analysis
-```{r}
-# Filter rows where "name" is "Setbp1"
-filtered_df <- setbp1_communities %>%
-  filter(name == "SETBP1" & entity == "gene")
-
-# Group by "tissue_type" and output values in "condor_memb" column
-output <- filtered_df %>%
-  group_by(tissue_type) %>%
-  summarize(com_value = unique(condor_memb))
-
-# Print the output
-print(output) # Setbp1 is in community 1 for all cell types in cortex
-```
-SETBP1 gene Communities:
-ADIPOSE_TISSUE	3			
-ADRENAL_GLAND	2			
-BLADDER	3			
-BLOOD	2			
-BLOOD_VESSEL	2			
-BONE_MARROW	2			
-BRAIN	2			
-BREAST	2			
-CERVIX_UTERI	3			
-COLON	2			
-ESOPHAGUS	2			
-FALLOPIAN_TUBE	2			
-HEART	2			
-KIDNEY	2			
-LIVER	2			
-LUNG	3			
-MUSCLE	3			
-NERVE	2			
-OVARY	2			
-PANCREAS	2			
-PITUITARY	3			
-PROSTATE	2			
-SALIVARY_GLAND	2			
-SKIN	3			
-SMALL_INTESTINE	2			
-SPLEEN	2			
-STOMACH	2			
-TESTIS	2			
-THYROID	3			
-UTERUS	2			
-VAGINA	2	
-
-# generate SETBP1 gene community pairing vector for Jaccard similarity comparison analysis
-```{r}
-# remove underscores in tissue_type column (example: "ADIPOSE_TISSUE", "ADIPOSETISSUE") for downstream analysis
-filtered_df$tissue_type <- gsub("_", "", filtered_df$tissue_type)
-
-# create column containing `tissue_type`_`condor_memb`
-filtered_df <- filtered_df %>% mutate(barcode = paste(tissue_type, condor_memb, sep = "_"))
-
-# Get all possible combinations of row values
-combinations <- combn(filtered_df$barcode, 2, FUN = function(x) paste(x, collapse = "_"))
-
-# Store combinations in a vector
-combinations_vector_setbp1_gene <- unlist(combinations)
-
-# Print the resulting vector
-print(combinations_vector_setbp1_gene)
-
-# save vector for Jaccard similarity
-save(combinations_vector_setbp1_gene, file = here("results/condor/setbp1_gene_combinations_vector.Rdata"))
-```
-
-
 ```{r processing-time}
 fptm <- proc.time() - ptm
 fptm[3] / 60
 ```
 elapsed 
-0.1548 
-
+2.17615 
 
 ```{r style-file}
 # run style
