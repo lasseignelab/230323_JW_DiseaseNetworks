@@ -64,6 +64,8 @@ mat <- as.matrix(collapsed_mat)
 # formatting CollecTRI input data
 print("grabbing prior network")
 net <- data.frame(read.csv(prior_net), header = TRUE)
+net$source <- toupper(net$source)
+net$target <- toupper(net$target)
 
 # Define function
 tf_activity <- function(mat, net, min_n){
