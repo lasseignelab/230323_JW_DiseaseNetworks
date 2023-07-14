@@ -40,3 +40,9 @@ get_gtex_median_tpm <- function(file, cols_tpm = "GTEX", identifier = "Tissue"){
 return(median_tpm_simple)
 }
 
+#function to calculate 1 + log(2)
+#1 + log base 2 fxn
+onelog2 <- function(x) {
+  log(1 + x, base = 2)
+}
+onelog2()
