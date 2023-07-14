@@ -15,7 +15,7 @@
 #
 #SBATCH --output=%x_%A_%a.out
 #SBATCH --error=%x_%A_%a.err
-#SBATCH --array=1-31 
+#SBATCH --array=0-31 
 
 ########################################
 ### PUT YOUR COMMANDS BELOW THIS BOX ###

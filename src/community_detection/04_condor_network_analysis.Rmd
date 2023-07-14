@@ -1,0 +1,232 @@
+---
+title: "04_condor_network_analysis"
+author: "Jordan Whitlock"
+date: '2023-07-11'
+output: html_document
+---
+
+Goal: Identify the overlap between all community and tissue type pairings for each GTEx tissue as well as only between the Communities containing SETBP1 as TF. 
+
+```{r}
+set.seed(2178)
+library(netZooR)
+library(here)
+library(corrplot)
+library(dplyr)
+library(readr)
+library(styler)
+library(RColorBrewer)
+library(tidyr)
+library(stringr)
+ptm <- proc.time()
+```
+# Investigate differences in community structure using Jaccard Index:
+```{r}
+# Get the list of files in the directory
+files <- list.files(here("results", "condor", "membership"), pattern = "_membership.csv")
+files
+
+# Initialize an empty data frame
+cortex_memb <- data.frame()
+
+# Loop through the files
+for (file in files) {
+  # Read the data from the file
+  data <- read_csv(here("results", "condor", "membership", file)) # Modify if your files are not tab-delimited
+
+  # Extract the cell type from the filename
+  tissue_type <- strsplit(file, "_membership.csv") %>% sub("^.*gtex_", "", .)
+
+  # Add a new column to the data for the cell type
+  data$tissue_type <- tissue_type
+
+  # Append the data to the master data frame
+  cortex_memb <- bind_rows(cortex_memb, data)
+}
+
+names(cortex_memb) <- c("node", "module", "tissue_type")
+# View the combined data
+head(cortex_memb)
+```
+
+```{r}
+# Assuming 'all_data' is your dataframe with 'node', 'module', and 'tissue_type' columns
+
+# remove underscores in tissue_type column (example: "ADIPOSE_TISSUE", "ADIPOSETISSUE") for downstream analysis
+cortex_memb$tissue_type <- gsub("_", "", cortex_memb$tissue_type)
+
+# Get the unique cell types
+unique_tissue_types <- unique(cortex_memb$tissue_type)
+
+# Initialize a list to store the results
+jaccard_results <- list()
+
+# Loop over each unique cell type
+for (tissue_type in unique_tissue_types) {
+  # Get the unique modules for this cell type
+  unique_modules <- unique(cortex_memb$module[cortex_memb$tissue_type == tissue_type])
+
+  # Loop over each unique module
+  for (module in unique_modules) {
+    # Get the nodes for the current cell type and module
+    current_nodes <- cortex_memb$node[cortex_memb$tissue_type == tissue_type & cortex_memb$module == module]
+
+    # Loop over all other cell types
+    for (other_tissue_type in unique_tissue_types[unique_tissue_types != tissue_type]) {
+      # Get the unique modules for the other cell type
+      other_unique_modules <- unique(cortex_memb$module[cortex_memb$tissue_type == other_tissue_type])
+
+      # Loop over each unique module for the other cell types
+      for (other_module in other_unique_modules) {
+        # Get the nodes for the other cell type and module
+        other_nodes <- cortex_memb$node[cortex_memb$tissue_type == other_tissue_type & cortex_memb$module == other_module]
+
+        # Calculate the Jaccard index
+        intersection_size <- length(intersect(current_nodes, other_nodes))
+        union_size <- length(union(current_nodes, other_nodes))
+        jaccard_index <- intersection_size / union_size
+
+        # Store the result in the list
+        result_key <- paste(tissue_type, module, other_tissue_type, other_module, sep = "_")
+        jaccard_results[[result_key]] <- jaccard_index
+      }
+    }
+  }
+}
+
+# Convert the results list to a dataframe
+jaccard_df <- data.frame(tissuetype_module = names(jaccard_results), jaccard_index = unlist(jaccard_results), stringsAsFactors = FALSE)
+
+# View the Jaccard results
+head(jaccard_df)
+
+# Look at distribution
+med_val <- median(jaccard_df$jaccard_index)
+med_val # 0.1035006, 4,004 pairings are below the median
+
+# Create a PNG file
+png(here("results", "condor", "setbp1_community_histogram.png"), width = 2500, height = 2500, res = 250)
+# Plot the histogram
+par(family = "Helvetica")
+
+setbp1_cortex_hist <- hist(jaccard_df$jaccard_index,
+  main = "Distribution of Jaccard Index across tissues and communities",
+  xlab = "Jaccard Index",
+  ylab = "Frequency",
+  col = "#A468A9",
+  border = "black"
+)
+
+abline(v = med_val, col = "red", lwd = 2, lty = 2)
+text(med_val, par("usr")[4] - 0.01 * diff(par("usr")[3:4]), "Median = 0.1035006", pos = 4, offset = 1, col = "red")
+
+dev.off()
+```
+
+# Find Jaccard Similarity between SETBP1 TF communities
+
+Load in tissue_community pairings to filter by:
+```{r}
+load(here("results/condor/setbp1_TF_combinations_vector.Rdata")) # combinations_vector_setbp1_tf in environment
+```
+
+
+```{r}
+setbp1_comm_filtered <- jaccard_df %>%
+  # separate the tissuetype_module column into two new columns: tissuetype1 and tissuetype2
+  separate(tissuetype_module, into = c("tissuetype1", "module1", "tissuetype2", "module2"), sep = "_")
+
+# filter rows where module numbers coresponding to SETBP1 TF.
+tf_df_filtered <- setbp1_comm_filtered %>%
+  filter(rownames(.) %in% combinations_vector_setbp1_TF) %>%
+  select(-module1, -module2)
+
+# create the matrix
+tf_matrix_df <- tf_df_filtered %>%
+  # reshape the data from long format to wide format
+  spread(key = tissuetype2, value = jaccard_index)
+
+# convert the dataframe to a matrix
+tf_jaccard_setbp1_matrix <- as.matrix(tf_matrix_df[-1])
+rownames(tf_jaccard_setbp1_matrix) <- tf_matrix_df[[1]]
+
+# Create a PNG file
+png(here("results", "condor", "setbp1_tf_community_corrplot.png"), width = 5000, height = 3000, res = 250)
+# Plot the correlogram
+my_palette <- colorRampPalette(c("white", "#D3B1C5", "#A468A9", "#533180", "#2C1D6C"))
+tf_setbp1_cortex_corr <- corrplot(tf_jaccard_setbp1_matrix, method = "circle", is.corr = FALSE, type = "upper", diag = FALSE, col = my_palette(100))
+dev.off()
+```
+
+```{r processing-time}
+fptm <- proc.time() - ptm
+fptm[3] / 60
+```
+elapsed 
+2.035683
+
+```{r style-file}
+# run style
+style_file(here("src/community_detection/04_condor_network_analysis.Rmd")) # commented out after being run once
+# lintr was run as well
+```
+
+```{r session-info}
+sessionInfo()
+```
+
+R version 4.1.3 (2022-03-10)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.6 LTS
+
+Matrix products: default
+BLAS/LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.8.so
+
+locale:
+[1] C
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] stringr_1.5.0       tidyr_1.3.0         RColorBrewer_1.1-3  styler_1.9.0        readr_2.1.4         dplyr_1.1.0         corrplot_0.92      
+ [8] here_1.0.1          netZooR_1.2.1       matrixcalc_1.0-6    yarn_1.20.0         pandaR_1.26.0       Biobase_2.54.0      BiocGenerics_0.40.0
+[15] reticulate_1.28     igraph_1.4.1       
+
+loaded via a namespace (and not attached):
+  [1] utf8_1.2.3                  R.utils_2.12.2              proto_1.0.0                 RUnit_0.4.32                tidyselect_1.2.0           
+  [6] RSQLite_2.3.0               AnnotationDbi_1.56.2        grid_4.1.3                  BiocParallel_1.28.3         munsell_0.5.0              
+ [11] base64url_1.4               codetools_0.2-18            preprocessCore_1.56.0       chron_2.3-59                pbdZMQ_0.3-9               
+ [16] withr_2.5.0                 colorspace_2.1-0            Category_2.60.0             filelock_1.0.2              knitr_1.42                 
+ [21] uuid_1.1-0                  rstudioapi_0.14             stats4_4.1.3                MatrixGenerics_1.6.0        repr_1.1.6                 
+ [26] GenomeInfoDbData_1.2.7      bit64_4.0.5                 rhdf5_2.38.1                rprojroot_2.0.3             downloader_0.4             
+ [31] vctrs_0.5.2                 generics_0.1.3              xfun_0.37                   BiocFileCache_2.2.1         R6_2.5.1                   
+ [36] doParallel_1.0.17           GenomeInfoDb_1.30.1         illuminaio_0.36.0           RJSONIO_1.3-1.8             locfit_1.5-9.7             
+ [41] bitops_1.0-7                rhdf5filters_1.6.0          cachem_1.0.7                reshape_0.8.9               DelayedArray_0.20.0        
+ [46] assertthat_0.2.1            vroom_1.6.1                 BiocIO_1.4.0                scales_1.2.1                nnet_7.3-17                
+ [51] gtable_0.3.1                rlang_1.0.6                 genefilter_1.76.0           splines_4.1.3               rtracklayer_1.54.0         
+ [56] GEOquery_2.62.2             hexbin_1.28.2               reshape2_1.4.4              yaml_2.3.7                  GenomicFeatures_1.46.5     
+ [61] backports_1.4.1             RBGL_1.70.0                 tools_4.1.3                 nor1mix_1.3-0               ggplot2_3.4.1              
+ [66] ellipsis_0.3.2              gplots_3.1.3                ggdendro_0.1.23             siggenes_1.68.0             STRINGdb_2.6.5             
+ [71] gsubfn_0.7                  Rcpp_1.0.10                 hash_2.2.6.2                plyr_1.8.8                  base64enc_0.1-3            
+ [76] sparseMatrixStats_1.6.0     progress_1.2.2              zlibbioc_1.40.0             purrr_1.0.1                 RCurl_1.98-1.10            
+ [81] prettyunits_1.1.1           openssl_2.0.5               sqldf_0.4-11                bumphunter_1.36.0           S4Vectors_0.32.4           
+ [86] cluster_2.1.2               SummarizedExperiment_1.24.0 fs_1.6.1                    magrittr_2.0.3              data.table_1.14.8          
+ [91] R.cache_0.16.0              matrixStats_0.63.0          hms_1.1.2                   evaluate_0.20               xtable_1.8-4               
+ [96] XML_3.99-0.13               mclust_6.0.0                IRanges_2.28.0              compiler_4.1.3              biomaRt_2.50.3             
+[101] minfi_1.40.0                tibble_3.1.8                RCy3_2.14.2                 KernSmooth_2.23-20          crayon_1.5.2               
+[106] R.oo_1.25.0                 htmltools_0.5.4             GOstats_2.60.0              mgcv_1.8-39                 tzdb_0.3.0                 
+[111] DBI_1.1.3                   dbplyr_2.3.1                MASS_7.3-55                 rappdirs_0.3.3              Matrix_1.5-3               
+[116] permute_0.9-7               cli_3.6.0                   quantro_1.28.0              uchardet_1.1.1              R.methodsS3_1.8.2          
+[121] quadprog_1.5-8              parallel_4.1.3              GenomicRanges_1.46.1        pkgconfig_2.0.3             GenomicAlignments_1.30.0   
+[126] IRdisplay_1.1               xml2_1.3.3                  foreach_1.5.2               annotate_1.72.0             penalized_0.9-52           
+[131] rngtools_1.5.2              multtest_2.50.0             beanplot_1.3.1              XVector_0.34.0              AnnotationForge_1.36.0     
+[136] doRNG_1.8.6                 scrime_1.3.5                digest_0.6.31               vegan_2.6-4                 graph_1.72.0               
+[141] Biostrings_2.62.0           rmarkdown_2.20              base64_2.0.1                edgeR_3.36.0                DelayedMatrixStats_1.16.0  
+[146] GSEABase_1.56.0             restfulr_0.0.15             curl_5.0.0                  Rsamtools_2.10.0            gtools_3.9.4               
+[151] rjson_0.2.21                lifecycle_1.0.3             nlme_3.1-155                jsonlite_1.8.4              Rhdf5lib_1.16.0            
+[156] viridisLite_0.4.1           askpass_1.1                 limma_3.50.3                fansi_1.0.4                 pillar_1.8.1               
+[161] lattice_0.20-45             plotrix_3.8-2               KEGGREST_1.34.0             fastmap_1.1.1               httr_1.4.5                 
+[166] survival_3.3-1              GO.db_3.14.0                glue_1.6.2                  png_0.1-8                   iterators_1.0.14           
+[171] bit_4.0.5                   Rgraphviz_2.38.0            stringi_1.7.12              HDF5Array_1.22.1            blob_1.2.3                 
+[176] org.Hs.eg.db_3.14.0         caTools_1.18.2              memoise_2.0.1               IRkernel_1.3.2  

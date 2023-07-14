@@ -1,0 +1,53 @@
+Folder path: /data/user/jbarham3/230323_JW_DiseaseNetworks/results/PANDA
+file1 gtex_LIVER_PANDA.Rdata 
+file2 gtex_TESTIS_PANDA.Rdata 
+GTEx Tissue: gtex   gtex 
+Tissue tType: LIVER   TESTIS 
+File path: /data/user/jbarham3/230323_JW_DiseaseNetworks/results/PANDA/gtex_LIVER_PANDA.Rdata /data/user/jbarham3/230323_JW_DiseaseNetworks/results/PANDA/gtex_TESTIS_PANDA.Rdata 
+[1] "Detecting communities in control network..."
+[1] "modularity of projected graph 0.270658166543802"
+[1] "Q = 0.270851871550225"
+[1] "Q = 0.270852574608698"
+[1] "Q = 0.270852574608698"
+[1] "Computing differential modularity matrix..."
+[1] "Computing differential modules..."
+[1] "Merging 23639 communities"
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+[1] "Merging 25 communities"
+[1] 1
+[1] "Computing node scores..."
+[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+[1] 11
+[1] 12
+[1] 13
+[1] 14
+[1] 15
+[1] 16
+[1] 17
+[1] 18
+[1] 19
+[1] 20
+[1] 21
+[1] 22
+[1] 23
+[1] 24
+[1] 25
+Alpaca input dimensions: 16326872 4 
