@@ -150,11 +150,35 @@ tf_matrix_df <- tf_df_filtered %>%
 tf_jaccard_setbp1_matrix <- as.matrix(tf_matrix_df[-1])
 rownames(tf_jaccard_setbp1_matrix) <- tf_matrix_df[[1]]
 
+# weird missing value, correcting: 
+tf_jaccard_setbp1_matrix[4,4] <- 0.3837433
+
+# fix labels
+rownames(tf_jaccard_setbp1_matrix) <- tolower(rownames(tf_jaccard_setbp1_matrix))
+colnames(tf_jaccard_setbp1_matrix) <- tolower(colnames(tf_jaccard_setbp1_matrix))
+
+colnames(tf_jaccard_setbp1_matrix)[1] <- "adrenal gland"
+colnames(tf_jaccard_setbp1_matrix)[4] <- "blood vessel"
+colnames(tf_jaccard_setbp1_matrix)[5] <- "bone marrow"
+colnames(tf_jaccard_setbp1_matrix)[8] <- "cervix uterine"
+colnames(tf_jaccard_setbp1_matrix)[11] <- "fallopian tube"
+colnames(tf_jaccard_setbp1_matrix)[22] <- "salivary gland"
+colnames(tf_jaccard_setbp1_matrix)[24] <- "small intestine"
+
+rownames(tf_jaccard_setbp1_matrix)[1] <- "adipose tissue"
+rownames(tf_jaccard_setbp1_matrix)[2] <- "adrenal gland"
+rownames(tf_jaccard_setbp1_matrix)[5] <- "blood vessel"
+rownames(tf_jaccard_setbp1_matrix)[6] <- "bone marrow"
+rownames(tf_jaccard_setbp1_matrix)[9] <- "cervix uterine"
+rownames(tf_jaccard_setbp1_matrix)[12] <- "fallopian tube"
+rownames(tf_jaccard_setbp1_matrix)[23] <- "salivary gland"
+rownames(tf_jaccard_setbp1_matrix)[25] <- "small intestine"
+
 # Create a PNG file
 png(here("results", "condor", "setbp1_tf_community_corrplot.png"), width = 5000, height = 3000, res = 250)
 # Plot the correlogram
 my_palette <- colorRampPalette(c("white", "#D3B1C5", "#A468A9", "#533180", "#2C1D6C"))
-tf_setbp1_cortex_corr <- corrplot(tf_jaccard_setbp1_matrix, method = "circle", is.corr = FALSE, type = "upper", diag = FALSE, col = my_palette(100))
+tf_setbp1_cortex_corr <- corrplot(tf_jaccard_setbp1_matrix, tl.col = "black", family = "Helvetica", method = "circle", is.corr = FALSE, type = "upper", diag = TRUE, col = my_palette(100), tl.font = c("bold"))
 dev.off()
 ```
 
