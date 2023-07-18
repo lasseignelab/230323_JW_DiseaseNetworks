@@ -30,10 +30,21 @@ print("libraries and functions loaded")
 
 
 #load in the input data needed
-motif <- read.table(file = "/data/project/lasseigne_lab/JordanWhitlock/230323_JW_DiseaseNetworks/data/hu_motif_all.txt", sep = "\t") #load in motif data
+motif <- read.table(
+  file = file.path(
+    "/data/project/lasseigne_lab/",
+    "JordanWhitlock/230323_JW_DiseaseNetworks/data/hu_motif_all.txt"
+  ), 
+  sep = "\t"
+) #load in motif data
 print("motif loaded")
 
-ppi <- read.table(file = "/data/project/lasseigne_lab/JordanWhitlock/230323_JW_DiseaseNetworks/data/hg38_ppi.txt", sep = "\t") #load in ppi data
+ppi <- read.table(
+  file = file.path("/data/project/lasseigne_lab/",
+  "JordanWhitlock/230323_JW_DiseaseNetworks/data/hg38_ppi.txt"
+  ),
+  sep = "\t"
+) #load in ppi data
 print("ppi loaded")
 
 expression <- read.csv(args[2]) #load expression data from .Rdata in here from $SAMPLE_LIST
@@ -52,7 +63,8 @@ print("Data collapsed based off of ENSG ID and ENSG moved to rownames")
 
 # use CoSIA to convert Bgee Ensembl IDs to species gene symbols
 species_rowid_vec <- rownames(collapsed_expression)
-species_rowid_df <- as.data.frame(rownames(collapsed_expression)) |> dplyr::rename(X1 = `rownames(collapsed_expression)`)
+species_rowid_df <- as.data.frame(rownames(collapsed_expression)) |>
+  dplyr::rename(X1 = `rownames(collapsed_expression)`)
 
 converted_id <- CoSIA_ensembltosymbol("Homo_sapiens", species_rowid_df)
 print("Check first converted ID")

@@ -7,7 +7,19 @@ library(here)
 library(utils)
 
 ##Make list of .Rdata expression files needed for array job (generated using `MouseSetbp1_PANDA_expression_05.Rmd`):
-files <- list.files("/data/project/lasseigne_lab/DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/tpm/individual", full.names = TRUE) # ensure that ALL exppression inputs for PANDA are in the same directory and that nothing else is in the directory.
+files <- list.files(
+  file.path(
+    "/data/project/lasseigne_lab/",
+    "DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/tpm/individual" 
+  ), 
+  full.names = TRUE
+) # ensure that ALL exppression inputs for PANDA are in the same directory and that nothing else is in the directory.
 files #save this as a text file to be the array file
 
-write.table(files, file = here("results/array_inputs/GTEx_exp_files_array.txt"), sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE) # for other data user may want to change file name
+write.table(files, file = here(
+  "results/array_inputs/GTEx_exp_files_array.txt"),
+  sep = "\t", 
+  row.names = FALSE, 
+  col.names = FALSE, 
+  quote = FALSE
+) # for other data user may want to change file name
