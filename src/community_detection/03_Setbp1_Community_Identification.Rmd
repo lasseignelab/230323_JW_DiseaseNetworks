@@ -18,10 +18,9 @@ ptm <- proc.time()
 ```
 
 ```{r loading-geneset}
-# load in gene set for Setbp1
-setbp1_genes <- read.csv(here("results/setbp1_targets.csv"))
-setbp1_genes <- setbp1_genes[, -1] %>% as.vector()
-setbp1_genes <- append(setbp1_genes, "Setbp1") %>% toupper()
+# load in gene set for SETBP1 (converted by LW)
+setbp1_genes <- read.csv(here("data/SETBP1_Targets/setbp1_targets_geneconversions.csv"))
+setbp1_genes <- setbp1_genes$name %>% as.vector()
 ```
 
 ```{r diff-comm-members-of-setbp1}
@@ -98,6 +97,10 @@ output <- filtered_df %>%
 
 # Print the output
 print(output) # Setbp1 is in community 1 for all cell types in cortex
+
+write.csv(output, 
+          file = here("results/condor/communitynumber_setbp1_TF.csv"),
+          row.names = FALSE)
 ```
 SETBP1 TF Communities:		
 ADIPOSE_TISSUE	1			
@@ -138,7 +141,8 @@ VAGINA	1
 filtered_df$tissue_type <- gsub("_", "", filtered_df$tissue_type)
 
 # create column containing `tissue_type`_`condor_memb`
-filtered_df <- filtered_df %>% mutate(barcode = paste(tissue_type, condor_memb, sep = "_"))
+filtered_df <- filtered_df %>%
+  mutate(barcode = paste(tissue_type, condor_memb, sep = "_"))
 
 # Get all possible combinations of row values
 combinations <- combn(filtered_df$barcode, 2, FUN = function(x) paste(x, collapse = "_"))
@@ -150,7 +154,8 @@ combinations_vector_setbp1_TF <- unlist(combinations)
 print(combinations_vector_setbp1_TF)
 
 # save vector for Jaccard similarity
-save(combinations_vector_setbp1_TF, file = here("results/condor/setbp1_TF_combinations_vector.Rdata"))
+save(combinations_vector_setbp1_TF,
+     file = here("results/condor/setbp1_TF_combinations_vector.Rdata"))
 ```
 
 ```{r processing-time}
