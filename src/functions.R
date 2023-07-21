@@ -456,71 +456,66 @@ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", po
   )
 }
 
-# function targeting-Calc on panda regNet for gene and TF
-targetingCalc <- function(regNetmatrix, variable_name, edge_weight_name, condition){
-  #rearrange dataframe 
-  regNetmatrix <- reshape2::melt(regNetmatrix, varnames = c("TF", "gene"), value.name = "edge_weight_name")#melting dataframe
-  print("dataframe melted")
-  regNetmatrix$edge_weight_name_pos <- ifelse(regNetmatrix$edge_weight_name < 0, 0, regNetmatrix$edge_weight_name) #replacing all negatives as a 0 and storing in new column
-  print("subsetting only positive edge weights")
-  regNetmatrix <- regNetmatrix[,c(1,2,4)]
-  regNetmatrix
+# function targeting-Calc on panda regNet for gene
+targetingCalc_gtex <- function(regNetmatrix_list){
+  targeting_list <- list()
+  
+  for (i in seq_along(regNetmatrix_list)) {
+    regNetmatrix <- as.data.frame(reshape2::melt(regNetmatrix_list[[i]]),
+                            varnames = c("TF", "gene"),
+                            value.name = "edge_weight") # melting dataframe
+    colnames(regNetmatrix) <- c("TF", "gene", "edge_weight")
+    regNetmatrix <- subset(regNetmatrix, regNetmatrix$edge_weight > 0)
+    targeting_list[[i]] <- regNetmatrix
+  }
+  
+  names(targeting_list) <- names(regNet_list)
+  print("dataframe melted and subset for only positive edge weights")
   
   #calculate gene targeting
-  print("calculating gene targeting")
-  Gene.targeting <- aggregate(.~gene, regNetmatrix[-1], sum) #removing TF column and calculating targeting for all edge weights and when edge weight is only positive
-  #set column names based on condition
-  print("renaming columns")
-  if(condition == "het"){
-    colnames(Gene.targeting) <- c("gene", "het_edge_weight_pos")
-    print("plotting gene targeting score distribution")
-    png(file = paste0(here("results/diff_targeting/"), variable_name, condition, "_GeneTargetingScoresDist.png"),
-        width = 1000,
-        height = 1000)
-      hist(Gene.targeting$het_edge_weight_pos)
-      dev.off()
-  } else {
-    colnames(Gene.targeting) <- c("gene", "ctrl_edge_weight_pos")
-    print("plotting gene targeting score distribution")
-    png(file = paste0(here("results/diff_targeting/"), variable_name, condition, "_GeneTargetingScoresDist.png"),
-        width = 1000,
-        height = 1000)
-    hist(Gene.targeting$ctrl_edge_weight_pos)
-    dev.off()
+  for (i in seq_along(targeting_list)){
+    print("calculating gene targeting")
+    data <- targeting_list[[i]]
+    Gene.targeting <- aggregate(.~data$gene, data[-1],sum) #removing TF column and calculating targeting for all edge weights and when edge weight is only positive
+    #set column names based on condition
+    print("renaming columns")
+    colnames(Gene.targeting) <- c("gene", "edge_weight_pos", "targeting_score")
+    targeting_list[[i]] <- Gene.targeting
   }
-  #reassign variable 
-  print("assigning variable name to object")
-  variable_name <- as.character(variable_name)
-  assign(paste0(variable_name, "_gene_targeting_", condition), Gene.targeting, envir = .GlobalEnv)
+
   print("gene targeting calculation complete")
+  return(targeting_list)
+}
+
+# function targeting-Calc on panda regNet for TF
+tf_targetingCalc_gtex <- function(regNetmatrix_list){
+  targeting_list <- list()
+  
+  for (i in seq_along(regNetmatrix_list)) {
+    regNetmatrix <- as.data.frame(reshape2::melt(regNetmatrix_list[[i]]),
+                                  varnames = c("TF", "gene"),
+                                  value.name = "edge_weight") # melting dataframe
+    colnames(regNetmatrix) <- c("TF", "gene", "edge_weight")
+    regNetmatrix <- subset(regNetmatrix, regNetmatrix$edge_weight > 0)
+    targeting_list[[i]] <- regNetmatrix
+  }
+  
+  names(targeting_list) <- names(regNet_list)
+  print("dataframe melted and subset for only positive edge weights")
   
   #calculate TF targeting
-  print("calculating TF targeting")
-  TF.targeting <- aggregate(.~TF, regNetmatrix[-2], sum) #same as above but for TF instead of gene
-  #set column names based on condition
-  print("renaming columns")
-  if(condition == "het"){
-    colnames(TF.targeting) <- c("TF", "het_edge_weight_pos")
-    print("plotting TF targeting score distribution")
-    png(file = paste0(here("results/diff_targeting/"), variable_name, condition, "_TFTargetingScoresDist.png"),
-        width = 1000,
-        height = 1000)
-    hist(TF.targeting$het_edge_weight_pos)
-    dev.off()
-  } else {
-    colnames(TF.targeting) <- c("TF", "ctrl_edge_weight_pos")
-    print("plotting TF targeting score distribution")
-    png(file = paste0(here("results/diff_targeting/"), variable_name, condition, "_TFTargetingScoresDist.png"),
-        width = 1000,
-        height = 1000)
-    hist(TF.targeting$ctrl_edge_weight_pos)
-    dev.off()
+  for (i in seq_along(targeting_list)){
+    print("calculating TF targeting")
+    data <- targeting_list[[i]]
+    tf.targeting <- aggregate(.~data$TF, data[-2],sum) #removing TF column and calculating targeting for all edge weights and when edge weight is only positive
+    #set column names based on condition
+    print("renaming columns")
+    colnames(tf.targeting) <- c("tf", "edge_weight_pos", "targeting_score")
+    targeting_list[[i]] <- tf.targeting
   }
-  #reassign variable
-  print("assigning variable name to object")
-  variable_name <- as.character(variable_name)
-  assign(paste0(variable_name, "_TF_targeting_", condition), TF.targeting, envir = .GlobalEnv)
-  print("TF targeting calculation complete")
+  
+  print("tf targeting calculation complete")
+  return(targeting_list)
 }
 
 # function-targeting_heatmap; used in targeting
@@ -544,7 +539,8 @@ targeting_heatmap <- function(annotation_colors, data, meta_colname, plot_path, 
   ##plot heatmap 
   png(filename = plot_path,
       width = width,
-      height = height)
+      height = height,
+      res = 300)
   print(Heatmap(mat,
                 col = colorRampPalette(brewer.pal(8,"Blues")) (25),
                 heatmap_legend_param = list(title = "targeting score"),
