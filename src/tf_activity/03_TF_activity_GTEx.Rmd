@@ -11,6 +11,7 @@ library(decoupleR)
 library(dplyr)
 library(tibble)
 library(tidyr)
+library(circlize)
 library(styler)
 library(ComplexHeatmap)
 library(ggrepel)
@@ -79,26 +80,45 @@ data <- as.matrix(data)
 data <- data[rownames(data) %in% setbp1_genes, ]
 ```
 
-```{r plotting-geneset-TFs}
-# Choose color palette
-palette_length <- 100
-my_color <- colorRampPalette(c("Darkblue", "white", "red"))(palette_length)
+```{r}
+# grab meta data for plot:
+meta <- as.data.frame(colnames(data))
 
-my_breaks <- c(
-  seq(-3, 0, length.out = ceiling(palette_length / 2) + 1),
-  seq(0.05, 3, length.out = floor(palette_length / 2))
-)
+rownames(meta) <- meta$`colnames(data)`
+colnames(meta) <- c("tissue")
 
+# convert dataframe to matrix
+mat <- as.matrix(data)
+
+# plot heatmap
+# Heatmap
+col_fun <- colorRamp2(seq(min(mat), max(mat), length = 4), c("blue", "white", "pink", "red"))
 png(
-  filename = here("results/tf_activity/gtex_setbp1_geneset.png"),
-  width = 2000,
-  height = 1500,
-  res = 250
+  filename = here("results/tf_activity/tf_activity_geneset_complexheatmap.png"),
+  width = 3000,
+  height = 3000,
+  res = 300
 )
-# Plot
-pheatmap(data, border_color = NA, color = my_color, breaks = my_breaks)
+Heatmap(mat,
+  col = col_fun,
+  heatmap_legend_param = list(title = "TF Activity", at = c(-5, 0, 5, 10)),
+  cluster_rows = TRUE,
+  cluster_columns = TRUE,
+  column_order = NULL,
+  show_row_dend = TRUE,
+  show_column_dend = TRUE,
+  row_names_gp = gpar(fontface = "bold", fontfamily = "Helvetica"),
+  row_title_gp = gpar(fontface = "bold"),
+  show_row_names = TRUE,
+  show_column_names = TRUE,
+  use_raster = TRUE,
+  raster_device = c("png"),
+  bottom_annotation = NULL,
+  top_annotation = NULL
+)
 dev.off()
 ```
+
 
 ```{r processing-time}
 fptm <- proc.time() - ptm
