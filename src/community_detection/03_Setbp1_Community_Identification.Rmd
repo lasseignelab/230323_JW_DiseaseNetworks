@@ -11,6 +11,7 @@ Goal: Determine what Community Number TF and gene Setbp1 is contained in for eve
 ```{r loading-libraries-seed-proctime}
 set.seed(2178)
 library(here)
+library(ggplot2)
 library(tidyverse)
 library(styler)
 library(dplyr)
@@ -82,6 +83,66 @@ setbp1_communities <- bind_rows(subset_dfs)
 write.csv(setbp1_communities, 
           file = here("results/condor/gtex_communities_setbp1_geneset.csv"),
           row.names = FALSE)
+```
+
+
+```{r investigating-community-size}
+data <- read.csv(here("results/condor/gtex_communities_setbp1_geneset.csv"))
+
+subset_names <- data[data$name == "SETBP1" & data$entity == "TF",]
+subset_names <- subset_names %>% unite(tissue_comm, tissue_type, condor_memb, sep = "_")
+subset_names <- subset_names$tissue_comm
+
+combo_name <- data %>% unite(tissue_comm, tissue_type, condor_memb, sep = "_")
+combo_name <- combo_name$tissue_comm
+
+data$combo_name <- combo_name
+
+data <- data[data$combo_name %in% subset_names,]
+
+summary_data <- data %>%
+  group_by(tissue_type, condor_memb) %>%
+  summarize(count = n())
+summary_data
+
+comm_data <- summary_data %>%
+  unite(tissue_comm, tissue_type, condor_memb, sep = "_")
+comm_data$condor_memb <- as.character(summary_data$condor_memb)
+
+# modifying for plotting
+comm_data$tissue <- str_replace(comm_data$tissue_comm, "_\\d+$", "")
+
+comm_data <- comm_data %>%
+  mutate(tissue_comm = reorder(tissue_comm, -count))
+
+png(
+  filename = here("results/condor/SETBP1_community_size.png"),
+  width = 2000,
+  height = 2000,
+  res = 300
+)
+ggplot(comm_data, aes(y = tissue_comm, x = count, fill = condor_memb)) +
+  geom_bar(stat = "identity") + 
+  scale_fill_manual(values = c("#D3B1C5", "#A468A9", "#533180", "#2C1D6C")) + 
+  theme_bw() +
+  theme(text = element_text(family = "Helvetica")) +
+  theme(axis.text.x = element_text(color = "black")) + 
+  theme(axis.text.y = element_text(color = "black")) +
+  theme(axis.text = element_text(face = "bold")) +
+  theme(legend.title = element_text(face = "bold")) +
+  theme(legend.text = element_text(face = "bold")) +
+  theme(axis.title.y = element_text(face = "bold")) +
+  theme(axis.title.x = element_text(face = "bold")) +
+  labs(x = "Community Size", y = "GTEx Tissue and Community Number")
+  ggtitle("SETBP1 Community Size across GTEx Tissues") +
+  theme(title = element_text(face = "bold"),
+        plot.title = element_text(hjust = 0, size = 20),
+        axis.title.x = element_text(size = 16),
+        axis.title.y = element_text(size = 16),
+        axis.text.x = element_text(size = 16),
+        axis.text.y = element_text(size = 16))
+    
+dev.off()
 ```
 
 # filter for SETBP1 to determine its community number as a TF for each cell type for Jaccard Index analysis
