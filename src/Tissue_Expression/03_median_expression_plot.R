@@ -24,13 +24,23 @@ p <- tissues_median_tpm %>%
   ggplot(aes(x = reorder(Tissue, Median_TPM, FUN = median), y = Median_TPM)) + 
   geom_violin() + 
   ylab("Median TPM Scaled (1+log2)") +
-  ggtitle("Expression of SETBP1 and Targets Across GTEx Tissues") + 
-  theme(axis.text.x = element_text(size = 5, angle = 80, vjust = 0.60, hjust = 0.2)) 
+  ggtitle("Expression of SETBP1 and Targets Across GTEx Tissues") +
+  theme_minimal() +
+  labs(x = "GTEx Tissue") +
+  theme(text = element_text(family = "Helvetica"),
+        axis.text.x = element_text(color = "black", size = 8, angle = 80, vjust = 0.4, hjust = 0.2),
+        axis.text.y = element_text(color = "black"),
+        axis.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"),
+        legend.text = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"),
+        axis.title.x = element_text(face = "bold"),
+        title = element_text(face = "bold"))
   #coord_flip()
   #scale_y_continuous(trans = "pseudo_log") + 
 #add boxplot 
 p <- p + geom_boxplot(width = 0.1)
-ggsave(here("results/SETBP1_Expression/plots/median_tpm_scaled_violin.png"))
+ggsave(here("results/SETBP1_Expression/plots/median_tpm_scaled_violin.png"), height = 5, width = 10)
 
 
 # gene labels and data wrangling
