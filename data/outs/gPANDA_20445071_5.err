@@ -1,0 +1,118 @@
+Loading required package: igraph
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+Loading required package: reticulate
+Loading required package: pandaR
+Loading required package: Biobase
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following objects are masked from ‘package:igraph’:
+
+    normalize, path, union
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+Loading required package: yarn
+Setting options('download.file.method.GEOquery'='auto')
+Setting options('GEOquery.inmemory.gpl'=FALSE)
+Loading required package: matrixcalc
+
+Attaching package: ‘matrixcalc’
+
+The following object is masked from ‘package:igraph’:
+
+    %s%
+
+
+
+Warning message:
+replacing previous import ‘utils::findMatches’ by ‘S4Vectors::findMatches’ when loading ‘AnnotationForge’ 
+Loading required package: ExperimentHub
+Loading required package: AnnotationHub
+Loading required package: BiocFileCache
+Loading required package: dbplyr
+
+Attaching package: ‘AnnotationHub’
+
+The following object is masked from ‘package:Biobase’:
+
+    cache
+
+'select()' returned 1:many mapping between keys and columns
+Joining with `by = join_by(h_sapiens_ensembl_id)`
+Joining with `by = join_by(h_sapiens_ensembl_id)`
+Iteration0: hamming distance =3.07227
+Iteration1: hamming distance =0.63435
+Iteration2: hamming distance =0.52555
+Iteration3: hamming distance =0.47728
+Iteration4: hamming distance =0.43863
+Iteration5: hamming distance =0.40139
+Iteration6: hamming distance =0.36417
+Iteration7: hamming distance =0.32729
+Iteration8: hamming distance =0.29147
+Iteration9: hamming distance =0.25739
+Iteration10: hamming distance =0.22557
+Iteration11: hamming distance =0.19634
+Iteration12: hamming distance =0.16987
+Iteration13: hamming distance =0.14619
+Iteration14: hamming distance =0.12522
+Iteration15: hamming distance =0.1068
+Iteration16: hamming distance =0.09076
+Iteration17: hamming distance =0.07686
+Iteration18: hamming distance =0.0649
+Iteration19: hamming distance =0.05465
+Iteration20: hamming distance =0.0459
+Iteration21: hamming distance =0.03847
+Iteration22: hamming distance =0.03218
+Iteration23: hamming distance =0.02687
+Iteration24: hamming distance =0.02239
+Iteration25: hamming distance =0.01864
+Iteration26: hamming distance =0.01549
+Iteration27: hamming distance =0.01285
+Iteration28: hamming distance =0.01066
+Iteration29: hamming distance =0.00882
+Iteration30: hamming distance =0.0073
+Iteration31: hamming distance =0.00603
+Iteration32: hamming distance =0.00498
+Iteration33: hamming distance =0.00411
+Iteration34: hamming distance =0.00339
+Iteration35: hamming distance =0.00279
+Iteration36: hamming distance =0.0023
+Iteration37: hamming distance =0.00189
+Iteration38: hamming distance =0.00156
+Iteration39: hamming distance =0.00128
+Iteration40: hamming distance =0.00105
+Iteration41: hamming distance =0.00087
+Successfully ran PANDA on 22932 Genes and 712 TFs.
+Time elapsed:3085.91seconds.
+Warning message:
+In cor(t(expr), method = cor.method, use = "pairwise.complete.obs") :
+  the standard deviation is zero
