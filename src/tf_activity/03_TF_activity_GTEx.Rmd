@@ -92,7 +92,7 @@ mat <- as.matrix(data)
 
 # plot heatmap
 # Heatmap
-col_fun <- colorRamp2(seq(min(mat), max(mat), length = 4), c("blue", "white", "pink", "red"))
+col_fun <- colorRamp2(seq(min(mat), max(mat), length = 4), c("#8C5209", "white", "#93C4BE", "#35978F"))
 png(
   filename = here("results/tf_activity/tf_activity_geneset_complexheatmap.png"),
   width = 3000,
