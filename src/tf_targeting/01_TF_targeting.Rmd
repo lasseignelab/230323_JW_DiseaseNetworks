@@ -393,7 +393,7 @@ ggplot() +
   theme(title = element_text(face = "bold"))
 dev.off()
 
-png(here("results", "tf_targeting", "tf_targeting_vln_Setbp1.png"), width = 2500, height = 2500, res = 250)
+png(here("results/f_targeting/tf_targeting_vln_Setbp1.png"), width = 2500, height = 2500, res = 250)
 ggplot(data, aes(x = tissue_status, y = targeting_score, fill = tissue_status)) +
   geom_violin(alpha = 0.3, color = "black") +
   labs(title = "Distribution of SETBP1 Targeting Score across tissues",
