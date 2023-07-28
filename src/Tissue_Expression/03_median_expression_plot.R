@@ -122,7 +122,7 @@ top_ha <- ComplexHeatmap::HeatmapAnnotation(SETBP1 = tempdf[,4],
                                             show_legend = FALSE,
                                             annotation_label = "SETBP1")
 hm_sb1_tar <- ComplexHeatmap::Heatmap(as.matrix(targets_tissue[,2:length(targets_tissue)]), 
-                                      km = 4,
+                                      km = 3,
                                       col = col_fun,
                                       row_labels = targets_tissue[,1],
                                       row_names_gp = gpar(fontsize = 6),
@@ -159,5 +159,5 @@ cl2_fea <- gprofiler2::gost(cl2_fea$GeneID, evcodes = TRUE)
 cl3_fea <- clu_df %>% dplyr::filter(., Cluster == "cluster3") #%>% 
 cl3_fea <- gprofiler2::gost(cl3_fea$GeneID, evcodes = TRUE)
 
-cl4_fea <- clu_df %>% dplyr::filter(., Cluster == "cluster4") #%>% 
-cl4_fea <- gprofiler2::gost(cl4_fea$GeneID, evcodes = TRUE)
+#cl4_fea <- clu_df %>% dplyr::filter(., Cluster == "cluster4") #%>% 
+#cl4_fea <- gprofiler2::gost(cl4_fea$GeneID, evcodes = TRUE)
