@@ -16,28 +16,48 @@ tissues_median_tpm <- map_dfc(setbp1_files, get_gtex_median_tpm)
 # remove any columns with NAs
 tissues_median_tpm <- tissues_median_tpm %>% select_if(~ !any(is.na(.)))
 
+#affected tissues 
+## affected tissues list
+affected <- c(
+  "BRAIN",
+  "HEART",
+  "KIDNEY",
+  "BLADDER",
+  "LUNG",
+  "MUSCLE",
+  "SMALL_INTESTINE",
+  "STOMACH",
+  "ESOPHAGUS"
+)
+
 ## VIOLIN PLOT
 p <- tissues_median_tpm %>% 
   pivot_longer(cols = everything(), names_to = "Tissue", values_to = "Median_TPM") %>% 
-  mutate(Median_TPM = log(1 + Median_TPM, base = 2), .keep = "unused") %>%
-  mutate(Tissue = str_extract(Tissue, ".*(?=Median_TPM)"), .keep = "unused") %>%
-  ggplot(aes(x = reorder(Tissue, Median_TPM, FUN = median), y = Median_TPM)) + 
-  geom_violin() + 
+  mutate(Median_TPM = log(1 + Median_TPM, base = 2), .keep = "unused") %>% #scaling
+  mutate(Tissue = str_extract(Tissue, ".*(?=Median_TPM)"), .keep = "unused") %>% #remove excess from filenames
+  mutate(Tissue = str_replace_all(Tissue, " ", "")) %>% #remove whitespace from names
+  mutate(Affected = ifelse(Tissue %in% affected, "TRUE", "FALSE")) %>%
+  mutate(Tissue = str_to_title(str_replace_all(Tissue, "_", " "))) %>%
+  ggplot(aes(x = reorder(Tissue, Median_TPM, FUN = median), y = Median_TPM, color = Affected)) + 
+  geom_violin(trim = FALSE) + 
+  scale_color_manual(values = c("TRUE" = alpha("#2C1D6C", 0.75), "FALSE" = alpha("#D3B1C5", 0.5))) +
   ylab("Median TPM Scaled (1+log2)") +
   ggtitle("Expression of SETBP1 and Targets Across GTEx Tissues") +
-  theme_minimal() +
+  #theme_minimal() +
   labs(x = "GTEx Tissue") +
-  theme(text = element_text(family = "Helvetica"),
-        axis.text.x = element_text(color = "black", size = 8, angle = 80, vjust = 0.4, hjust = 0.2),
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        text = element_text(family = "Helvetica"),
+        axis.text.x = element_text(color = "black", size = 10, angle = 80, vjust = 0.4, hjust = 0.2),
         axis.text.y = element_text(color = "black"),
         axis.text = element_text(face = "bold"),
         legend.title = element_text(face = "bold"),
         legend.text = element_text(face = "bold"),
         axis.title.y = element_text(face = "bold"),
         axis.title.x = element_text(face = "bold"),
-        title = element_text(face = "bold"))
-  #coord_flip()
-  #scale_y_continuous(trans = "pseudo_log") + 
+        title = element_text(face = "bold"),
+        plot.title = element_text(hjust = 0.5))
 #add boxplot 
 p <- p + geom_boxplot(width = 0.1)
 ggsave(here("results/SETBP1_Expression/plots/median_tpm_scaled_violin.png"), height = 5, width = 10)
