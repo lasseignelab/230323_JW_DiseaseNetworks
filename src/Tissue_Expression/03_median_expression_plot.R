@@ -49,7 +49,8 @@ p <- tissues_median_tpm %>%
         panel.grid.minor = element_blank(),
         panel.background = element_blank(),
         text = element_text(family = "Helvetica"),
-        axis.text.x = element_text(color = "black", size = 10, angle = 80, vjust = 0.4, hjust = 0.2),
+        #axis.text.x = element_text(color = "black", size = 10, angle = 80, vjust = 0.4, hjust = 0.2),
+        axis.text.x = element_text(color = "black", size = 10),
         axis.text.y = element_text(color = "black"),
         axis.text = element_text(face = "bold"),
         legend.title = element_text(face = "bold"),
@@ -57,10 +58,10 @@ p <- tissues_median_tpm %>%
         axis.title.y = element_text(face = "bold"),
         axis.title.x = element_text(face = "bold"),
         title = element_text(face = "bold"),
-        plot.title = element_text(hjust = 0.5))
+        plot.title = element_text(size = 14, hjust = 0.5))
 #add boxplot 
-p <- p + geom_boxplot(width = 0.1)
-ggsave(here("results/SETBP1_Expression/plots/median_tpm_scaled_violin.png"), height = 5, width = 10)
+p <- p + geom_boxplot(width = 0.1) + coord_flip()
+ggsave(here("results/SETBP1_Expression/plots/median_tpm_scaled_violin_flip.png"), height = 8, width = 6)
 
 
 # gene labels and data wrangling
