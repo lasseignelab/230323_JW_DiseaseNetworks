@@ -66,14 +66,18 @@ ggsave(here("results/SETBP1_Expression/plots/median_tpm_scaled_violin_flip.png")
 
 # gene labels and data wrangling
 setbp1_targets <- read.csv(file = here("data/SETBP1_Targets/setbp1_targets_geneconversions.csv"), row.names = 1)
+
 tissues_med_log <- tissues_median_tpm %>% 
   rownames_to_column(., var = "target") %>% 
   purrr::modify_if(., is.numeric, onelog2) %>% # 1 + log2 transformed for scaling
 #  mutate(Tissue = str_extract(Tissue, ".*(?=Median_TPM)"), .keep = "unused") %>%
   left_join(., setbp1_targets, by = "target") %>% #combine TPM with gene annotations
   column_to_rownames(., var = "target") %>%
-  dplyr::select(., name | ends_with("Median_TPM"))
-#hm_anno <- ComplexHeatmap::rowAnnotation()
+  dplyr::select(., name | ends_with("Median_TPM")) %>%
+  rename_all( ~ gsub("Median_TPM", "", .)) %>% 
+  rename_all( ~ str_to_title(gsub("_", " ", .)))
+#  mutate(Affected = ifelse(Tissue %in% affected, "TRUE", "FALSE")) %>%
+#  mutate(Tissue = str_to_title(str_replace_all(Tissue, "_", " "))) %>%
 
 ## HEATMAP
 # everything in one heatmap
@@ -93,30 +97,36 @@ rowAnnotation(link = anno_mark(at = which(tissues_med_log$name == "SETBP1"),
 dev.off()
 
 # setbp1 as separate heatmap
-#setbp1_tissue <- tissues_med_log %>% dplyr::filter(., name == "SETBP1") #%>% t()
+#setbp1_tissue <- tissues_med_log %>% dplyr::filter(., Name == "SETBP1") #%>% t() #weird class change issues with numbers..
 #t <- tissues_med_log[4:5,]# %>% dplyr::filter(., name == "SETBP1") #%>% t()
-targets_tissue <- tissues_med_log %>% dplyr::filter(., name != "SETBP1")# %>% t()
+targets_tissue <- tissues_med_log %>% dplyr::filter(., Name != "SETBP1")# %>% t()
 
-png(here("results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_clusters.png"), width = 25, height = 30, units = "cm", res = 300)
-set.seed(1)
 
-#my_palette <- colorRampPalette(c("white", "#D3B1C5", "#A468A9", "#533180", "#2C1D6C")) 
-#trying to set color breaks
-#break_avg <- mean(as.matrix(tissues_med_log[,2:length(tissues_med_log)]))
+#set color breaks
 break_quart <- quantile(as.matrix(tissues_med_log[,2:length(tissues_med_log)]))
 
 col_fun = circlize::colorRamp2(break_quart, c("white", "#D3B1C5", "#A468A9", "#533180", "#2C1D6C"))
 #tf_setbp1_cortex_corr <- corrplot(tf_jaccard_setbp1_matrix, method = "circle", is.corr = FALSE, type = "upper", diag = FALSE, col = my_palette(100))
+tempdf <- t(as.matrix(tissues_med_log[1:4,2:length(tissues_med_log)]))
+colnames(tempdf) <- tissues_med_log$Name[1:4]
 
-
-top_ha <- ComplexHeatmap::HeatmapAnnotation(SETBP1 = t(as.matrix(tissues_med_log[4,2:length(tissues_med_log)])),
+#plot and save
+png(here("results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_clusters.png"), width = 25, height = 30, units = "cm", res = 300)
+set.seed(1)
+#top_ha <- ComplexHeatmap::HeatmapAnnotation(SETBP1 = t(as.matrix(tissues_med_log[4,2:length(tissues_med_log)])),
+top_ha <- ComplexHeatmap::HeatmapAnnotation(SETBP1 = tempdf[,4],
+                                            name = "SETBP1",
                                             col = list(SETBP1 = col_fun),
+                                            #annotation_name_gp = gpar(names = "SETBP1"),
+                                            #show_annotation_name = FALSE,
+                                            show_legend = FALSE,
                                             annotation_label = "SETBP1")
 hm_sb1_tar <- ComplexHeatmap::Heatmap(as.matrix(targets_tissue[,2:length(targets_tissue)]), 
                                       km = 4,
                                       col = col_fun,
                                       row_labels = targets_tissue[,1],
-                                      #row_names_gp = grid::gpar(fontsize = 4),
+                                      row_names_gp = gpar(fontsize = 6),
+                                      heatmap_legend_param = list(title = "Scaled  TPM"),
                                       top_annotation = top_ha)
 
 #hm_sb1 + hm_sb1_tar
