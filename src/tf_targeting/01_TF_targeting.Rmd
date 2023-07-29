@@ -48,7 +48,8 @@ affected <- c(
   "MUSCLE",
   "SMALL_INTESTINE",
   "STOMACH",
-  "ESOPHAGUS"
+  "ESOPHAGUS",
+  "BLOOD"
 )
 ```
 
@@ -116,7 +117,7 @@ for (i in files) {
 ```
 
 ```{r save-object}
-# save(regNet_list, file = here("results/tf_targeting/regNet_list.Rdata")) #commented out after first save to avoid overwriting
+save(regNet_list, file = here("results/tf_targeting/regNet_list.Rdata")) #commented out after first save to avoid overwriting
 ```
 
 ## Visualizing edge weight distributions filtered and unfiltered
@@ -127,7 +128,7 @@ merged_regNet_list <- list()
 # Loop through the list and melt the data frames
 for (i in seq_along(regNet_list)) {
   melted <- as.data.frame(reshape2::melt(regNet_list[[i]]),
-    varnames = c("TF", "gene"),
+    varnames = c("tf", "gene"),
     value.name = "edge_weight"
   ) # melting dataframe
 
@@ -212,7 +213,7 @@ colnames(tf_targeting) <- names
 ```{r ridgeline-plot-targeting-scores}
 melted <- melt(tf_targeting) # melting data
 
-colnames(melted) <- c("TF", "tissue", "targeting_score")
+colnames(melted) <- c("tf", "tissue", "targeting_score")
 
 png(here("results/tf_targeting/TF_targeting_score_ridgeline.png"),
   height = 500, width = 800
@@ -232,10 +233,10 @@ gene_number_list <- list()
 
 for (i in seq_along(regNet_list)) {
   regNetmatrix <- as.data.frame(reshape2::melt(regNet_list[[i]]),
-    varnames = c("TF", "gene"),
+    varnames = c("tf", "gene"),
     value.name = "edge_weight"
   ) # melting dataframe
-  colnames(regNetmatrix) <- c("TF", "gene", "edge_weight")
+  colnames(regNetmatrix) <- c("tf", "gene", "edge_weight")
   regNetmatrix <- subset(regNetmatrix, regNetmatrix$edge_weight > 0)
   gene_number_list[[i]] <- regNetmatrix
 }
@@ -249,7 +250,7 @@ for (i in seq_along(gene_number_list)) {
 
   # Calculate the number of unique genes for each TF
   tf_gene_counts <- aggregate(
-    gene ~ TF, regNetmatrix,
+    gene ~ tf, regNetmatrix,
     function(x) length(unique(x))
   )
 
@@ -259,25 +260,25 @@ for (i in seq_along(gene_number_list)) {
 
 names(gene_counts_list) <- names(regNet_list)
 
-# combining intp single dataframe
+# combining into single data frame
 tf_gene_number <- gene_counts_list %>%
-  purrr::reduce(full_join, by = "TF") %>%
-  select(., contains(c("TF", "gene"))) # did not grab edge_weight_pos column here
+  purrr::reduce(full_join, by = "tf") %>%
+  select(., contains(c("tf", "gene"))) # did not grab edge_weight_pos column here
 
 # grabbing colnames and setting for new data frame generated above
 names <- names(gene_counts_list) %>%
-  append("TF", .)
+  append("tf", .)
 colnames(tf_gene_number) <- names
 
 # normalizing by number of genes being targeted by each TF in each GTEx tissue
 normalized_tf_targeting <- tf_targeting / tf_gene_number
-normalized_tf_targeting$TF <- tf_targeting$tf
+normalized_tf_targeting$tf <- tf_targeting$tf
 ```
 
 ```{r normalized-ridgeline-plot-targeting-scores}
 melted <- melt(normalized_tf_targeting) # melting data
 
-colnames(melted) <- c("TF", "tissue", "targeting_score")
+colnames(melted) <- c("tf", "tissue", "targeting_score")
 
 png(here("results/tf_targeting/normalizedTF_targeting_score_ridgeline.png"),
   height = 500, width = 800
@@ -293,7 +294,7 @@ dev.off()
 
 
 ```{r find-top-targeted-genes-within-tissue}
-tissues <- colnames(normalized_tf_targeting) %>% .[which(. != "TF")]
+tissues <- colnames(normalized_tf_targeting) %>% .[which(. != "tf")]
 tissues
 ```
 
@@ -301,7 +302,7 @@ tissues
 tf_rank <- list() # creating empty list to store within
 
 for (i in tissues) {
-  rank <- normalized_tf_targeting[, names(normalized_tf_targeting) %in% c("TF", i)] %>%
+  rank <- normalized_tf_targeting[, names(normalized_tf_targeting) %in% c("tf", i)] %>%
     .[order(.[i], decreasing = TRUE), ] %>%
     mutate(rank = seq_len(nrow(.))) %>%
     mutate(tissue = i) %>%
@@ -313,10 +314,10 @@ tf_rank_all <- do.call(bind_rows, tf_rank)
 ```
 
 ```{r het-setbp1-tf-targets-within}
-data <- tf_rank_all[tf_rank_all$TF %in% setbp1_genes, ]
+data <- tf_rank_all[tf_rank_all$tf %in% setbp1_genes, ]
 
 ## formatting input data
-data <- data[, c("TF", "targeting_score", "tissue"), drop = FALSE]
+data <- data[, c("tf", "targeting_score", "tissue"), drop = FALSE]
 data <- pivot_wider(data,
   names_from = c("tissue"),
   values_from = "targeting_score",
@@ -340,9 +341,13 @@ targeting_heatmap(annotation_colors, data, meta_colname, plot_path, rowtitle, pl
 ```
 
 ```{r visualizing-affected-tissues}
-data <- tf_rank_all[tf_rank_all$TF == "SETBP1", ]
+data <- tf_rank_all[tf_rank_all$tf == "SETBP1", ]
 
-data$tissue_status <- ifelse(data$tissue %in% affected, "affected", "not_affected")
+data$tissue_status <- ifelse(data$tissue %in% affected, "Affected", "Not Affected")
+
+#cleaning up data for plot
+data$tissue[data$tissue == "CERVIX_UTERI"] <- "CERVIX UTERINE"
+data$tissue <- gsub("_", " ", data$tissue)
 
 # Plot the lollipop plot with the color condition
 png(
@@ -354,7 +359,7 @@ png(
 tf_lolli <- ggplot(data, aes(x = tissue, y = targeting_score)) +
   geom_segment(aes(x = tissue, xend = tissue, y = 0, yend = targeting_score)) +
   geom_point(size = 5, aes(fill = tissue_status), color = "black", alpha = 1, shape = 21) +
-  scale_fill_manual(values = c("affected" = "#2C1D6C", "not_affected" = alpha("#D3B1C5", 0.3))) +
+  scale_fill_manual(values = c("Affected" = "#2C1D6C", "Not Affected" = alpha("#D3B1C5", 0.3))) +
   theme_bw() +
   coord_flip() +
   ggtitle("TF Targeting Scores of SETBP1 in GTEx Tissues") +
