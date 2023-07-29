@@ -379,7 +379,7 @@ dev.off()
 ```
 
 ```{r visualize-dist}
-png(here("results", "tf_targeting", "tf_targeting_density_Setbp1.png"), width = 2500, height = 2500, res = 250)
+png(here("results/tf_targeting/tf_targeting_density_Setbp1.png"), width = 2500, height = 2500, res = 250)
 ggplot() +
   geom_density(data = subset(data, tissue_status == "not_affected"), aes(x = targeting_score), fill = alpha("#D3B1C5", 0.3), color = "black") +
   geom_density(data = subset(data, tissue_status == "affected"), aes(x = targeting_score), fill = "#2C1D6C", color = "black", alpha = 0.5) +
