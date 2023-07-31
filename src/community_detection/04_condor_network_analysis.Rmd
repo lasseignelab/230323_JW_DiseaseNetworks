@@ -151,8 +151,8 @@ tf_matrix_df <- tf_df_filtered %>%
 tf_jaccard_setbp1_matrix <- as.matrix(tf_matrix_df[-1])
 rownames(tf_jaccard_setbp1_matrix) <- tf_matrix_df[[1]]
 
-# weird missing value, correcting: 
-tf_jaccard_setbp1_matrix[4,4] <- 0.3837433
+# weird missing value, correcting:
+tf_jaccard_setbp1_matrix[4, 4] <- 0.3837433
 
 # fix labels
 rownames(tf_jaccard_setbp1_matrix) <- str_to_title(rownames(tf_jaccard_setbp1_matrix)) %>% gsub("_", " ", .)
@@ -170,7 +170,7 @@ png(here("results", "condor", "setbp1_tf_community_corrplot.png"), width = 5000,
 
 # Plot the correlogram
 my_palette <- colorRampPalette(c("white", "#D3B1C5", "#A468A9", "#533180", "#2C1D6C"))
-tf_setbp1_cortex_corr <- corrplot(tf_jaccard_setbp1_matrix, tl.col = "black", family = "Helvetica", method = "circle", is.corr = FALSE, type = "upper", diag = TRUE, col = my_palette(100), tl.font = c("bold"))
+tf_setbp1_cortex_corr <- corrplot(tf_jaccard_setbp1_matrix, tl.col = "black", family = "Helvetica", method = "circle", is.corr = FALSE, type = "upper", diag = TRUE, col = my_palette(100), tl.font = c("bold"), tl.cex = 1.8)
 dev.off()
 ```
 

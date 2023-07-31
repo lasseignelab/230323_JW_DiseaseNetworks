@@ -347,7 +347,6 @@ data <- tf_rank_all[tf_rank_all$tf == "SETBP1", ]
 data$tissue_status <- ifelse(data$tissue %in% affected, "Affected", "Not Affected")
 
 #cleaning up data for plot
-data$tissue[data$tissue == "CERVIX_UTERI"] <- "CERVIX UTERINE" #renaming CERVIX
 data$tissue <- gsub("_", " ", data$tissue) #replacing underscore 
 data$tissue <- str_to_title(data$tissue)
 
