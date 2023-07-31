@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Authors
 **Jordan H. Whitlock Elizabeth J. Wilk, Timothy C. Howton, Amanda D. Clark, Brittany N. Lasseigne**
 
-- The University of Alabama at Birmingham (UAB), Heersink School of Medicine, Department of Cell, Developmental and Integrative Biology (CDIB)
+The University of Alabama at Birmingham (UAB), Heersink School of Medicine, Department of Cell, Developmental and Integrative Biology (CDIB)
 
 [The Lasseigne Lab](https://www.lasseigne.org/)
 
@@ -30,12 +30,38 @@ This repository contains the code and accompanying data for our analysis of the 
 Here we provide a framework to investigate the following: 
 
 - [Tissue-specific expresion of *SETBP1* and its known targets](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/Tissue_Expression)
+```{r echo = FALSE}
+fs::dir_tree("src/Tissue_Expression")
+```
+
 - [Construction of tissue-specific gene regulatory networks](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/GTEx_PANDA)
+```{r echo = FALSE}
+fs::dir_tree("src/GTEx_PANDA")
+```
   - Information on Network inputs and how to produce them can be found [here](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/panda_input_construction).
+```{r echo = FALSE}
+fs::dir_tree("src/panda_input_construction")
+```
+
 - [Tissue-specific community detection](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/community_detection)
+```{r echo = FALSE}
+fs::dir_tree("src/community_detection")
+```
+
 - [SETBP1 TF activity analysis](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tf_activity)
+```{r echo = FALSE}
+fs::dir_tree("src/tf_activity")
+```
+
 - [TF targeting](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tf_targeting)
+```{r echo = FALSE}
+fs::dir_tree("src/tf_targeting")
+```
+
 - [Tissue-specific edge identification](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tissue_specific_edges)
+```{r echo = FALSE}
+fs::dir_tree("src/tissue_specific_edges")
+```
 
 *However, this code can be adapted and applied to other genes or TFs.*
 
