@@ -118,7 +118,7 @@ for (i in files) {
 ```
 
 ```{r save-object}
-save(regNet_list, file = here("results/tf_targeting/regNet_list.Rdata")) #commented out after first save to avoid overwriting
+#save(regNet_list, file = here("results/tf_targeting/regNet_list.Rdata")) #commented out after first save to avoid overwriting
 ```
 
 ## Visualizing edge weight distributions filtered and unfiltered
@@ -419,6 +419,14 @@ ggplot(data, aes(x = tissue_status, y = targeting_score, fill = tissue_status)) 
 dev.off()
 ```
 
+```{r permutation-testing}
+permutation_pvalues <- tfTargeting_permutation_test(
+  data_table = normalized_tf_targeting,
+  gene_oi = "SETBP1",
+  tissue_types = tissues,
+  nperm = 999
+)
+```
 
 ```{r}
 fptm <- proc.time() - ptm
