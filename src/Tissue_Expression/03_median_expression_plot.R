@@ -100,7 +100,7 @@ ggsave(
 
 # end timer
 fptm <- proc.time() - ptm
-fptm[3] / 60 # script runtime in minutes
+fptm[3] / 60 # script runtime in minutes: 0.1576
 
 # save session info
 saveRDS(
