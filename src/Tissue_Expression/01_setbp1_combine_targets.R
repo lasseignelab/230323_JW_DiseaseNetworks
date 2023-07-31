@@ -6,7 +6,7 @@
 #2. Signor:
 #  * Human: SET, HOXA9, HOXA10
 
-#The final target list is composed of 226 Human genes mapped to 682 mouse orthologs/aliases.
+#The final target list is composed of 209 Human genes mapped to 682 mouse orthologs/aliases.
 #############END JW's notes#############
 suppressPackageStartupMessages({
   library(tidyverse)
@@ -16,11 +16,41 @@ suppressPackageStartupMessages({
 
 
 #setbp1 targets from msigdb
-msig_setbp1 <- msigdbr::msigdbr(species = "Homo sapiens", category = "C3", subcategory = "GTRD")
+msig_setbp1 <- msigdbr::msigdbr(species = "Homo sapiens",
+                                category = "C3",
+                                subcategory = "GTRD")
 msig_setbp1 <- msig_setbp1 %>% filter(., gs_name == "SETBP1_TARGET_GENES")
 
 #targets compiled from literature by JW + SETBP1 itself
-lit_setbp1 <- c("SETBP1", "HCF1", "KMT2A", "PHF8", "PHF6", "SET", "HOXA9", "HOXA10", "PP2A", "HMGA1", "PHF6", "BMP5", "PDE4D", "ERPP4", "RUNX1", "TCF4", "BCL11A", "DNTT", "MYB", "MYC", "CEBPB", "PARP1", "TAF1A", "ANP32A", "AKT", "HMG2", "TREX1", "NME1", "APEX1")
+lit_setbp1 <- c("SETBP1",
+                "HCF1",
+                "KMT2A",
+                "PHF8",
+                "PHF6",
+                "SET",
+                "HOXA9",
+                "HOXA10",
+                "PP2A",
+                "HMGA1",
+                "PHF6",
+                "BMP5",
+                "PDE4D",
+                "ERPP4",
+                "RUNX1",
+                "TCF4",
+                "BCL11A",
+                "DNTT",
+                "MYB",
+                "MYC",
+                "CEBPB",
+                "PARP1",
+                "TAF1A",
+                "ANP32A",
+                "AKT",
+                "HMG2",
+                "TREX1",
+                "NME1",
+                "APEX1")
 
 # signor
 signor_setbp1 <- c("SET", "HOXA9", "HOXA10")
@@ -29,9 +59,11 @@ setdiff(signor_setbp1, lit_setbp1)  # none, just using lit list moving forward
 
 # any in the literature list of targets that are not in the msigdb one? 
 setdiff(lit_setbp1, msig_setbp1$gene_symbol)
+length(setdiff(lit_setbp1, msig_setbp1$gene_symbol))# 28
 
 # convert to ensembl ID's
 setbp1_targets_geneconversions <- gprofiler2::gconvert(unique(c(signor_setbp1, lit_setbp1, msig_setbp1$gene_symbol)), target = "ENSG")
 
 # save setbp1 aggregated targets and gene conversions
-write.csv(setbp1_targets_geneconversions, file = here("data/SETBP1_Targets/setbp1_targets_geneconversions.csv"))
+write.csv(setbp1_targets_geneconversions,
+          file = here("data/SETBP1_Targets/setbp1_targets_geneconversions.csv"))
