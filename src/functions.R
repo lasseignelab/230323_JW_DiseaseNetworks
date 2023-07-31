@@ -917,7 +917,42 @@ permutation_test <- function(data_table,
   return(results)
 }
 
-
+tfTargeting_permutation_test <- function(data_table,
+                                         tissue_types,
+                                         gene_oi,
+                                         nperm) {
+  counter <- 0
+  results <- data.frame(
+    matrix(
+      ncol = 1, 
+      nrow = length(tissue_types)
+    )
+  )
+  
+  rownames(results) <- tissue_types
+  colnames(results) <- "p-value"
+  unique_targets <- as.vector(unique(data_table$tf))
+  gene_list <- c(
+    gene_oi,
+    sample(
+      unique_targets,
+      size = nperm,
+      replace = FALSE
+    )
+  )
+  # Subset the dataframe based on the sampled gene list.
+  permutation <- for (i in 1:length(tissue_types)) { #tissue
+    for (j in 2:length(gene_list)) { # gene list
+      if (data_table[data_table$tf == gene_list[[1]], tissue_types[i]] <= data_table[data_table$tf == gene_list[[j]], tissue_types[i]]) {
+        counter <- counter + 1
+      }
+    }
+    p_val <- ((counter+1)/(nperm+1))
+    results[i, 1] <- p_val
+    counter <- 0
+  }
+  return(results)
+}
 
 
 # 
