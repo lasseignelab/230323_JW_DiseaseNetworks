@@ -1,0 +1,191 @@
+---
+title: "01_tissue_specific_edge_identification"
+author: "Jordan Whitlock"
+date: '2023-08-01'
+output: html_document
+---
+
+```{r}
+set.seed(2178)
+library(here)
+library(tidyr)
+library(lintr)
+library(styler)
+library(dplyr)
+library(reshape2)
+proc.time()
+```
+
+```{r}
+# affected tissues
+affected <- c(
+  "BLOOD",
+  "BRAIN",
+  "HEART",
+  "KIDNEY",
+  "BLADDER",
+  "LUNG",
+  "MUSCLE",
+  "SMALL_INTESTINE",
+  "STOMACH",
+  "ESOPHAGUS"
+)
+```
+
+
+# generating edges from the regNet
+```{r}
+files <- list.files(here("results/PANDA"), full.names = TRUE)
+
+names <- sub("expression_PANDA.Rdata", "", basename(files)) %>%
+  sub("gtex_", "", .) %>%
+  sub("_PANDA.Rdata", "", .)
+
+regNet_edges <- list()
+
+for (i in files) {
+  # load in the pandaResults
+  load(i)
+  # extracting-networks
+  regNet <- pandaResults@regNet
+  regNet <- reshape2::melt(regNet, varnames = c("TF", "gene"), value.name = "edge_weight")
+
+  # filter for TF SETBP1
+  regNet <- regNet[regNet$TF == "SETBP1", ]
+
+  # creating edges
+  regNet$edges <- paste(regNet$TF, regNet$gene, sep = "_")
+  regNet <- subset(regNet, select = -c(TF, gene))
+
+  # store in list
+  regNet_edges[[i]] <- regNet
+
+  # print
+  print(paste0(i, "melted and edges created"))
+}
+
+names(regNet_edges) <- names
+
+save(regNet_edges, file = here("results/tissue_specific_edges/edges_list_object.Rdata"))
+```
+
+# combine all regNets for all tissues 
+```{r}
+merged_df <- regNet_edges[[1]]
+for (i in 2:length(regNet_edges)) {
+  merged_df <- left_join(merged_df, regNet_edges[[i]], by = "edges")
+}
+
+# reorder the columns
+merged_df <- merged_df %>%
+  select(edges, edge_weight, everything())
+
+# rename the columns
+names(merged_df)[-1] <- names(regNet_edges)
+
+# save the object
+save(merged_df, file = here("results/tissue_specific_edges/merged_edges_object.Rdata"))
+```
+
+We wanted to identify tissue-specific edges as previously defined in [Sonawane et al Cell Reports 2017](https://www.cell.com/cell-reports/fulltext/S2211-1247(17)31418-3#secsectitle0080); formulas 1, 2 & 3 to calculate tissue-specific-edges
+```{r}
+# log transform + 1 (ln(x + 1)) transform edge weights to address negatives
+merged_df <- merged_df %>% mutate(across(-1, ~ log(exp(.) + 1)))
+
+# make df for storing median and iqr
+med_iqr_df <- data.frame(edges = merged_df$edges)
+
+# calculate median and IQR for each edge (row) across all tissues
+med_iqr_df$median_all <- apply(merged_df[, -1], 1, median) # median for each row
+med_iqr_df$IQR_all <- apply(merged_df[, -1], 1, IQR) # IQR for each row
+
+# compare edge weights across tissues using Sonawane et al Equation 2 to calculate specificity scores
+merged_df[, -1] <- t(apply(merged_df[, -1], 1, function(x) (x - med_iqr_df$median_all) / med_iqr_df$IQR_all)) # transpose because apply returns rows as rtissues and columns as edges
+
+# calculate multiplicity
+merged_df$multiplicity <- apply(merged_df[-1], 1, function(x) sum(x > 2))
+multiplicity <- merged_df[, c(1, 33)]
+
+save(merged_df, file = here("results/ts_edges/specificity_multiplicity.Rdata"))
+
+multiplicity <- multiplicity %>%
+  separate(edges, into = c("TF", "gene"), sep = "_", remove = FALSE) # split edges
+
+save(multiplicity, file = here("results/ts_edges/multiplicity.Rdata"))
+```
+
+# define tissue specific edges as those with a specificity scores > 2
+```{r}
+merged_df <- merged_df[, -33]
+merged_df[, -1] <- lapply(merged_df[, -1], function(x) ifelse(x > 2, 1, 0))
+
+# melt tissue-specific edges and grab only those that are tissue-specific
+tissue_specific <- melt(merged_df, id.vars = "edges",
+                        variable.name = "Tissue",
+                        value.name = "Tissue Specific")
+tissue_specific <- tissue_specific[tissue_specific$`Tissue Specific` == 1, ]
+
+# split edges
+tissue_specific <- tissue_specific %>%
+  separate(edges, into = c("TF", "gene"), sep = "_", remove = FALSE)
+
+save(tissue_specific, file = here("results/ts_edges/tissue_specific_edges.Rdata"))
+```
+
+## Cross reference tissue-specific edges with the CONDOR communitites for SETBP1
+```{r}
+load(here("results/condor/condor_list.Rdata"))
+setbp1_comm_number <- read.csv(here("results/condor/communitynumber_setbp1_TF.csv"))
+```
+
+```{r comm-members-tse-edges}
+# grab nodes interacting with SETBP1 from tse
+tse_genes <- as.vector(unique(tissue_specific$gene))
+
+# Subset each dataframe for tse genes in the list and annotate with the list name
+subset_dfs <- lapply(names(condor_list), function(list_name) {
+  df <- condor_list[[list_name]]
+  subset_df <- df[df$name %in% tse_genes, ]
+  subset_df$tissue_type <- list_name
+  return(subset_df)
+})
+
+# Bind all subset dataframes into a single dataframe
+tse_edges <- bind_rows(subset_dfs)
+
+# filter communities for communities known to contain SETBP1 for each tissue
+setbp1_comms <- paste(setbp1_comm_number$tissue_type, setbp1_comm_number$com_value, sep = "_")# generate SETBP1 community vector label
+tse_edges$annotation <- paste(tse_edges$tissue_type, tse_edges$condor_memb, sep = "_")# generate annotation to filter tse edges for setbp1_comms with
+data <- tse_edges[tse_edges$annotation %in% setbp1_comms,]# filter for only setbp1 communities 
+data <- data[data$name %in% setbp1_genes,]# filter for known targets of SETBP1
+```
+
+```{r assign-mult-to-ts-setbp1-comm-edges}
+mult_genes <- multiplicity %>% separate(edges, c("tf", "gene")) #grab multiplicity
+
+merged_data <- left_join(data, mult_genes, by = c('name' = 'gene')) # add multiplicity to tse community data
+
+affected_merged <- merged_data[merged_data$tissue_type %in% affected,] # filter for affected tissues
+
+affected_merged <- affected_merged[affected_merged$entity == "gene",] %>% na.omit(.) # filter for only genes
+```
+
+```{r visualize-tse-in-setbp1-comm-mult}
+# multiplicity of tissue specific edges of SETBP1 in SEBTP1 communities
+```
+
+
+```{r}
+# run style
+style_file(here("src/tissue_specific_edges/01_tissue_specific_edge_identification.Rmd"))
+# lintr was run as well
+```
+
+```{r}
+fptm <- proc.time() - ptm
+fptm[3] / 60
+```
+
+```{r}
+sessionInfo()
+```
