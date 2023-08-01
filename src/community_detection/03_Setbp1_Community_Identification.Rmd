@@ -115,6 +115,10 @@ comm_data$tissue <- str_replace(comm_data$tissue_comm, "_\\d+$", "")
 comm_data <- comm_data %>%
   mutate(tissue_comm = reorder(tissue_comm, -count))
 
+comm_data$tissue_comm <- col <- sub("_[^_]*$", "", comm_data$tissue_comm)
+comm_data$tissue_comm <- str_to_title(comm_data$tissue_comm) %>% gsub("_", " ", .)
+
+
 png(
   filename = here("results/condor/SETBP1_community_size.png"),
   width = 2000,
@@ -133,7 +137,7 @@ ggplot(comm_data, aes(y = tissue_comm, x = count, fill = condor_memb)) +
   theme(legend.text = element_text(face = "bold")) +
   theme(axis.title.y = element_text(face = "bold")) +
   theme(axis.title.x = element_text(face = "bold")) +
-  labs(x = "Community Size", y = "GTEx Tissue and Community Number")
+  labs(x = "SETBP1 Community Size", y = "GTEx Tissue", fill = "Community Number") +
   ggtitle("SETBP1 Community Size across GTEx Tissues") +
   theme(title = element_text(face = "bold"),
         plot.title = element_text(hjust = 0, size = 20),

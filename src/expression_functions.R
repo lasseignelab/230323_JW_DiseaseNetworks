@@ -45,4 +45,4 @@ return(median_tpm_simple)
 onelog2 <- function(x) {
   log(1 + x, base = 2)
 }
-onelog2()
+

@@ -1,0 +1,570 @@
+---
+title: "01_TF_targeting"
+output: html_document
+date: '2023-02-13'
+---
+
+This analysis determines TF targeting scores within tissue types for each tissue-specific PANDA regulatory networks. All networks below were filtered to only include positive weights.
+
+#load in required libraries & functions
+```{r loading-libraries-functions, results='hide'}
+set.seed(2178)
+library(netZooR)
+library(stringr)
+library(data.table)
+library(dplyr)
+library(patchwork)
+library(tidyr)
+library(ggpubr)
+library(ggplot2)
+library(ComplexHeatmap)
+library(RColorBrewer)
+library(magrittr)
+library(circlize)
+library(readr)
+library(gprofiler2)
+library(ggridges)
+library(here)
+source(here("src/functions.R"))
+library(styler)
+library(lintr)
+ptm <- proc.time()
+```
+
+## load gene set 
+```{r loading-geneset}
+# load in gene set for SETBP1 (converted by LW)
+setbp1_genes <- read.csv(here("data/SETBP1_Targets/setbp1_targets_geneconversions.csv"))
+setbp1_genes <- setbp1_genes$name %>% as.vector()
+```
+
+## affected tissues list
+```{r}
+affected <- c(
+  "BRAIN",
+  "HEART",
+  "KIDNEY",
+  "BLADDER",
+  "LUNG",
+  "MUSCLE",
+  "SMALL_INTESTINE",
+  "STOMACH",
+  "ESOPHAGUS",
+  "BLOOD"
+)
+```
+
+
+## setting heatmap data needed for the rest of the script
+```{r heatmap-color-annotation}
+# setting annotation colors
+annotation_colors <- list("tissue" = c(
+  "ADIPOSE_TISSUE" = "#000000",
+  "ADRENAL_GLAND" = "#FFFFFF",
+  "BLADDER" = "#FF0000",
+  "BLOOD" = "#00FF00",
+  "BLOOD_VESSEL" = "#0000FF",
+  "BONE_MARROW" = "#FFFF00",
+  "BRAIN" = "#FF00FF",
+  "BREAST" = "#00FFFF",
+  "CERVIX_UTERI" = "#800000",
+  "COLON" = "#008000",
+  "ESOPHAGUS" = "#000080",
+  "FALLOPIAN_TUBE" = "#808000",
+  "HEART" = "#800080",
+  "KIDNEY" = "#008080",
+  "LIVER" = "#808080",
+  "LUNG" = "#C0C0C0",
+  "MUSCLE" = "#FFA500",
+  "NERVE" = "#A52A2A",
+  "OVARY" = "#800080",
+  "PANCREAS" = "#FFC0CB",
+  "PITUITARY" = "#FFD700",
+  "PROSTATE" = "#FF8C00",
+  "SALIVARY_GLAND" = "#ADFF2F",
+  "SKIN" = "#F0E68C",
+  "SMALL_INTESTINE" = "#00FA9A",
+  "SPLEEN" = "#F08080",
+  "STOMACH" = "#4682B4",
+  "TESTIS" = "#B0C4DE",
+  "THYROID" = "#00CED1",
+  "UTERUS" = "#FF1493",
+  "VAGINA" = "#DAA520"
+))
+```
+
+## load in PANDA object containing list of all cell types from Setbp1 data
+Here each item returned by the for loop represents a PANDA object for a given cell type that contains the regNet, coopNet, and coregNet for that cell type.
+```{r loading-object, results='hide'}
+files <- list.files(here("results/PANDA"),
+  full.names = TRUE
+) # grabbing file names
+
+files # 31 tissues total
+
+regNet_list <- list()
+
+for (i in files) {
+  load(i)
+  regNet <- pandaResults
+  regNet <- regNet@regNet
+  name <- sub(here("results/PANDA/gtex_"), "", i)
+  name <- sub("_PANDA.Rdata*", "", name)
+  # assign(paste0(name, ".regNet"), regNet)
+  regNet_list[[name]] <- regNet
+  rm(pandaResults)
+  rm(regNet)
+}
+```
+
+```{r save-object}
+#save(regNet_list, file = here("results/tf_targeting/regNet_list.Rdata")) #commented out after first save to avoid overwriting
+```
+
+## Visualizing edge weight distributions filtered and unfiltered
+```{r visualize-distribution-of-unfiltered-regNet-scores}
+# Create an empty list to store the melted data frames
+merged_regNet_list <- list()
+
+# Loop through the list and melt the data frames
+for (i in seq_along(regNet_list)) {
+  melted <- as.data.frame(reshape2::melt(regNet_list[[i]]),
+    varnames = c("tf", "gene"),
+    value.name = "edge_weight"
+  ) # melting dataframe
+
+  melted <- as.data.frame(melted[, 3])
+  colnames(melted) <- "edge_weight"
+
+  # Extract the name of the list item and create the 'tissue' column
+  melted$tissue <- names(regNet_list)[i]
+
+  # Store the melted data frame in the merged_regNet_list
+  merged_regNet_list[[i]] <- melted
+
+  print(paste0(names(regNet_list)[i], " melted and stored"))
+}
+
+# naming list  items
+names(merged_regNet_list) <- names(regNet_list)
+
+merged <- bind_rows(merged_regNet_list)
+```
+
+
+```{r plotting-edgeweights}
+# plotting distribution
+png(
+  filename = here("results/tf_targeting/regNet_edgeweight_dist.png"),
+  width = 1000,
+  height = 500
+)
+ggplot(data = merged, aes(
+  x = edge_weight,
+  group = tissue, color = tissue
+)) +
+  geom_density(adjust = 1.5, alpha = .4) +
+  ggtitle("Distribution of regNet edge weights in GTEx Data") +
+  theme_bw() # +
+# scale_color_manual(values = c("#FFBE1D", "#4E3801", "#EEDF37", "#F03F00", "#6D0404", "#AA6320", "#CF9400", "#FFC8C4", "#AA937E", "#C70F0F", "#A85A5A", "#BD085E", "#948802", "#FFE196", "#FF7600", "#F8766D", "#FFE196"))
+dev.off()
+```
+
+Note: all negative edge weights were changed to 0
+```{r visualize-distribution-of-filtered-het-regNet-scores}
+# grabbing only positive edge weights
+merged_pos <- merged[merged$edge_weight > 0, ]
+
+# plotting only positive het edge weights
+png(
+  filename = here("results/tf_targeting/regNet_edgeweight_pos_dist.png"),
+  width = 1000,
+  height = 500
+)
+ggplot(data = merged_pos, aes(x = edge_weight, group = tissue, color = tissue)) +
+  geom_density(adjust = 1.5, alpha = .4) +
+  ggtitle("Distribution of regNet edge weights > 0 in GTEx Tissues") +
+  theme_bw()
+dev.off()
+```
+
+## Filtering for only positive edge weights, and calculating targeting scores:
+Gene targeting score, a numerical score representing the extent to which a gene is targeted by TFs in a given biological context. The gene targeting score is calculated by summing the weights of all inbound regulatory edges for a gene (https://doi.org/10.3389/fgene.2021.649942). 
+* regNetmatrix: The PANDA regNet output matrix of TF and Genes and their edge weights from running pandaR on GTEx expression, TF-Motif, and PPI inputs.
+
+
+# Investigating TF targeting of Setbp1 in each tissue
+```{r calc-targeting}
+# filtering for only positive edge weights
+gtex_tf_targeting <- tf_targetingCalc_gtex(regNetmatrix_list = regNet_list)
+```
+
+```{r constructing-tf-targeting-matrix}
+# grabbing targeting scores for genes
+tf_targeting <- gtex_tf_targeting %>%
+  purrr::reduce(full_join, by = "tf") %>%
+  select(., contains(c("tf", "targeting_score"))) # did not grab edge_weight_pos column here
+
+# grabbing colnames and setting for new dataframe generated above
+names <- names(gtex_tf_targeting) %>%
+  append("tf", .)
+colnames(tf_targeting) <- names
+```
+
+```{r ridgeline-plot-targeting-scores}
+melted <- melt(tf_targeting) # melting data
+
+colnames(melted) <- c("tf", "tissue", "targeting_score")
+
+png(here("results/tf_targeting/TF_targeting_score_ridgeline.png"),
+  height = 500, width = 800
+)
+ggplot(melted) +
+  geom_density_ridges(aes(x = targeting_score, y = tissue, fill = tissue),
+    alpha = 0.8
+  ) +
+  theme_bw() +
+  ggtitle("TF Targeting Score Distribution in GTEx Tissues")
+dev.off()
+```
+
+```{r normalize-by-gene-number}
+# Create an empty list to store positive edge weight only values from regNet_list
+gene_number_list <- list()
+
+for (i in seq_along(regNet_list)) {
+  regNetmatrix <- as.data.frame(reshape2::melt(regNet_list[[i]]),
+    varnames = c("tf", "gene"),
+    value.name = "edge_weight"
+  ) # melting dataframe
+  colnames(regNetmatrix) <- c("tf", "gene", "edge_weight")
+  regNetmatrix <- subset(regNetmatrix, regNetmatrix$edge_weight > 0)
+  gene_number_list[[i]] <- regNetmatrix
+}
+
+# Create an empty list to store the number of genes corresponding to each TF in each tissue
+gene_counts_list <- list()
+
+# loop through
+for (i in seq_along(gene_number_list)) {
+  regNetmatrix <- gene_number_list[[i]]
+
+  # Calculate the number of unique genes for each TF
+  tf_gene_counts <- aggregate(
+    gene ~ tf, regNetmatrix,
+    function(x) length(unique(x))
+  )
+
+  # Store the result in the list
+  gene_counts_list[[i]] <- tf_gene_counts
+}
+
+names(gene_counts_list) <- names(regNet_list)
+
+# combining into single data frame
+tf_gene_number <- gene_counts_list %>%
+  purrr::reduce(full_join, by = "tf") %>%
+  select(., contains(c("tf", "gene"))) # did not grab edge_weight_pos column here
+
+# grabbing colnames and setting for new data frame generated above
+names <- names(gene_counts_list) %>%
+  append("tf", .)
+colnames(tf_gene_number) <- names
+
+# normalizing by number of genes being targeted by each TF in each GTEx tissue
+normalized_tf_targeting <- tf_targeting / tf_gene_number
+normalized_tf_targeting$tf <- tf_targeting$tf
+```
+
+```{r normalized-ridgeline-plot-targeting-scores}
+melted <- melt(normalized_tf_targeting) # melting data
+
+colnames(melted) <- c("tf", "tissue", "targeting_score")
+
+png(here("results/tf_targeting/normalizedTF_targeting_score_ridgeline.png"),
+  height = 500, width = 800
+)
+ggplot(melted) +
+  geom_density_ridges(aes(x = targeting_score, y = tissue, fill = tissue),
+    alpha = 0.8
+  ) +
+  theme_bw() +
+  ggtitle("Normalized TF Targeting Score Distribution in GTEx Tissues")
+dev.off()
+```
+
+
+```{r find-top-targeted-genes-within-tissue}
+tissues <- colnames(normalized_tf_targeting) %>% .[which(. != "tf")]
+tissues
+```
+
+```{r}
+tf_rank <- list() # creating empty list to store within
+
+for (i in tissues) {
+  rank <- normalized_tf_targeting[, names(normalized_tf_targeting) %in% c("tf", i)] %>%
+    .[order(.[i], decreasing = TRUE), ] %>%
+    mutate(rank = seq_len(nrow(.))) %>%
+    mutate(tissue = i) %>%
+    rename(targeting_score = i)
+  tf_rank[[i]] <- rank
+}
+
+tf_rank_all <- do.call(bind_rows, tf_rank)
+```
+
+```{r het-setbp1-tf-targets-within}
+data <- tf_rank_all[tf_rank_all$tf %in% setbp1_genes, ]
+
+## formatting input data
+data <- data[, c("tf", "targeting_score", "tissue"), drop = FALSE]
+data <- pivot_wider(data,
+  names_from = c("tissue"),
+  values_from = "targeting_score",
+  names_repair = "minimal"
+)
+data[is.na(data)] <- 0
+names <- data$tf # add tf names as rownames
+data <- data[, -1, drop = FALSE] # drop tf column
+rownames(data) <- names
+
+# setting meta colname
+meta_colname <- "tissue"
+# setting plot path
+plot_path <- here("results/tf_targeting/normalized_tf_targeting_geneset_within_tissue.png")
+# setting rowtitle
+rowtitle <- "TFs"
+# setting columntitle
+plot_title <- "Targeting of Setbp1 and known target TFs within GTEx tissues"
+
+targeting_heatmap(annotation_colors, data, meta_colname, plot_path, rowtitle, plot_title, show_names = TRUE, width = 3000, height = 5000)
+```
+
+```{r visualizing-affected-tissues}
+data <- tf_rank_all[tf_rank_all$tf == "SETBP1", ]
+
+data$tissue_status <- ifelse(data$tissue %in% affected, "Affected", "Not Affected")
+
+#cleaning up data for plot
+data$tissue <- gsub("_", " ", data$tissue) #replacing underscore 
+data$tissue <- str_to_title(data$tissue)
+
+# Plot the lollipop plot with the color condition
+png(
+  filename = here("results/tf_targeting/SETBP1_normalized_tf_targeting_lolli.png"),
+  width = 2000,
+  height = 1500,
+  res = 300
+)
+tf_lolli <- ggplot(data, aes(x = tissue, y = targeting_score)) +
+  geom_segment(aes(x = tissue, xend = tissue, y = 0, yend = targeting_score)) +
+  geom_point(size = 5, aes(fill = tissue_status), color = "black", alpha = 1, shape = 21) +
+  scale_fill_manual(values = c("Affected" = "#2C1D6C", "Not Affected" = alpha("#D3B1C5", 0.3))) +
+  theme_bw() +
+  coord_flip() +
+  ggtitle("TF Targeting Scores of SETBP1 in GTEx Tissues") +
+  labs(x = "GTEx Tissue", y = "Normalized Targeting Score", fill = "Tissue Status") +
+  theme(text = element_text(family = "Helvetica")) +
+  theme(axis.text.x = element_text(color = "black")) +
+  theme(axis.text.y = element_text(color = "black")) +
+  theme(axis.text = element_text(face = "bold")) +
+  theme(legend.title = element_text(face = "bold")) +
+  theme(legend.text = element_text(face = "bold")) +
+  theme(axis.title.y = element_text(face = "bold")) +
+  theme(axis.title.x = element_text(face = "bold")) +
+  theme(title = element_text(face = "bold")) +
+  theme(plot.title = element_text(hjust = 0))
+tf_lolli
+dev.off()
+```
+
+```{r visualize-dist}
+png(here("results/tf_targeting/tf_targeting_density_Setbp1.png"), width = 2500, height = 2500, res = 250)
+ggplot() +
+  geom_density(data = subset(data, tissue_status == "not_affected"), aes(x = targeting_score), fill = alpha("#D3B1C5", 0.3), color = "black") +
+  geom_density(data = subset(data, tissue_status == "affected"), aes(x = targeting_score), fill = "#2C1D6C", color = "black", alpha = 0.5) +
+  labs(title = "Distribution of SETBP1 Targeting Score across tissues",
+       x = "Normalized TF Targeting Score", y = "Density") +
+  scale_fill_manual(values = c("#D3B1C5", "#2C1D6C")) +
+  theme_minimal()  +
+  theme(text = element_text(family = "Helvetica")) +
+  theme(axis.text.x = element_text(color = "black")) +
+  theme(axis.text.y = element_text(color = "black")) +
+  theme(axis.text = element_text(face = "bold")) +
+  theme(legend.title = element_text(face = "bold")) +
+  theme(legend.text = element_text(face = "bold")) +
+  theme(axis.title.y = element_text(face = "bold")) +
+  theme(axis.title.x = element_text(face = "bold")) +
+  theme(title = element_text(face = "bold"))
+dev.off()
+
+png(here("results/f_targeting/tf_targeting_vln_Setbp1.png"), width = 2500, height = 2500, res = 250)
+ggplot(data, aes(x = tissue_status, y = targeting_score, fill = tissue_status)) +
+  geom_violin(alpha = 0.3, color = "black") +
+  labs(title = "Distribution of SETBP1 Targeting Score across tissues",
+       x = "Tissue Status", y = "Normalized TF Targeting Score") +
+  scale_fill_manual(values = c("#D3B1C5", "#2C1D6C"), name = "Tissue Status",
+                    labels = c("Not Affected", "Affected")) +
+  theme_minimal() +
+  theme(text = element_text(family = "Helvetica"),
+        axis.text.x = element_text(color = "black"),
+        axis.text.y = element_text(color = "black"),
+        axis.text = element_text(face = "bold"),
+        legend.title = element_text(face = "bold"),
+        legend.text = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"),
+        axis.title.x = element_text(face = "bold"),
+        title = element_text(face = "bold"))
+dev.off()
+```
+
+```{r permutation-testing}
+permutation_pvalues <- tfTargeting_permutation_test(
+  data_table = normalized_tf_targeting,
+  gene_oi = "SETBP1",
+  tissue_types = tissues,
+  nperm = 999
+)
+```
+
+```{r}
+fptm <- proc.time() - ptm
+fptm[3] / 60
+```
+ elapsed 
+38.95262 
+
+```{r}
+# run style
+style_file(here("src/tf_targeting/01_TF_targeting.Rmd"))
+# lintr was run as well
+```
+
+
+```{r}
+sessionInfo()
+```
+R version 4.1.3 (2022-03-10)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.6 LTS
+
+Matrix products: default
+BLAS/LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.8.so
+
+locale:
+[1] C
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] stringr_1.5.0         lintr_3.0.2           styler_1.9.0         
+ [4] here_1.0.1            ggridges_0.5.4        gprofiler2_0.2.1     
+ [7] readr_2.1.4           circlize_0.4.15       magrittr_2.0.3       
+[10] RColorBrewer_1.1-3    ComplexHeatmap_2.10.0 ggpubr_0.6.0         
+[13] ggplot2_3.4.1         tidyr_1.3.0           patchwork_1.1.2      
+[16] dplyr_1.1.0           data.table_1.14.8     netZooR_1.2.1        
+[19] matrixcalc_1.0-6      yarn_1.20.0           pandaR_1.26.0        
+[22] Biobase_2.54.0        BiocGenerics_0.40.0   reticulate_1.28      
+[25] igraph_1.4.1         
+
+loaded via a namespace (and not attached):
+  [1] rappdirs_0.3.3              rtracklayer_1.54.0         
+  [3] pbdZMQ_0.3-9                AnnotationForge_1.36.0     
+  [5] R.methodsS3_1.8.2           bumphunter_1.36.0          
+  [7] minfi_1.40.0                bit64_4.0.5                
+  [9] knitr_1.42                  R.utils_2.12.2             
+ [11] DelayedArray_0.20.0         KEGGREST_1.34.0            
+ [13] RCurl_1.98-1.10             GEOquery_2.62.2            
+ [15] doParallel_1.0.17           generics_0.1.3             
+ [17] GenomicFeatures_1.46.5      preprocessCore_1.56.0      
+ [19] callr_3.7.3                 RSQLite_2.3.0              
+ [21] chron_2.3-59                bit_4.0.5                  
+ [23] tzdb_0.3.0                  base64url_1.4              
+ [25] xml2_1.3.3                  SummarizedExperiment_1.24.0
+ [27] assertthat_0.2.1            STRINGdb_2.6.5             
+ [29] xfun_0.37                   hms_1.1.2                  
+ [31] evaluate_0.20               fansi_1.0.4                
+ [33] restfulr_0.0.15             scrime_1.3.5               
+ [35] progress_1.2.2              caTools_1.18.2             
+ [37] dbplyr_2.3.1                Rgraphviz_2.38.0           
+ [39] DBI_1.1.3                   htmlwidgets_1.6.1          
+ [41] reshape_0.8.9               stats4_4.1.3               
+ [43] purrr_1.0.1                 hash_2.2.6.2               
+ [45] ellipsis_0.3.2              backports_1.4.1            
+ [47] permute_0.9-7               annotate_1.72.0            
+ [49] biomaRt_2.50.3              sparseMatrixStats_1.6.0    
+ [51] MatrixGenerics_1.6.0        vctrs_0.5.2                
+ [53] remotes_2.4.2               penalized_0.9-52           
+ [55] abind_1.4-5                 cachem_1.0.7               
+ [57] withr_2.5.0                 vegan_2.6-4                
+ [59] GenomicAlignments_1.30.0    prettyunits_1.1.1          
+ [61] mclust_6.0.0                cyclocomp_1.1.0            
+ [63] cluster_2.1.2               IRdisplay_1.1              
+ [65] lazyeval_0.2.2              crayon_1.5.2               
+ [67] uchardet_1.1.1              genefilter_1.76.0          
+ [69] labeling_0.4.2              edgeR_3.36.0               
+ [71] pkgconfig_2.0.3             GenomeInfoDb_1.30.1        
+ [73] nlme_3.1-155                nnet_7.3-17                
+ [75] rlang_1.0.6                 RJSONIO_1.3-1.8            
+ [77] lifecycle_1.0.3             downloader_0.4             
+ [79] filelock_1.0.2              BiocFileCache_2.2.1        
+ [81] rex_1.2.1                   GOstats_2.60.0             
+ [83] quantro_1.28.0              rprojroot_2.0.3            
+ [85] matrixStats_0.63.0          graph_1.72.0               
+ [87] rngtools_1.5.2              base64_2.0.1               
+ [89] Matrix_1.5-3                IRkernel_1.3.2             
+ [91] carData_3.0-5               Rhdf5lib_1.16.0            
+ [93] base64enc_0.1-3             processx_3.8.0             
+ [95] GlobalOptions_0.1.2         png_0.1-8                  
+ [97] viridisLite_0.4.1           rjson_0.2.21               
+ [99] bitops_1.0-7                R.oo_1.25.0                
+[101] KernSmooth_2.23-20          rhdf5filters_1.6.0         
+[103] Biostrings_2.62.0           blob_1.2.3                 
+[105] DelayedMatrixStats_1.16.0   doRNG_1.8.6                
+[107] shape_1.4.6                 nor1mix_1.3-0              
+[109] R.cache_0.16.0              rstatix_0.7.2              
+[111] S4Vectors_0.32.4            ggsignif_0.6.4             
+[113] scales_1.2.1                memoise_2.0.1              
+[115] GSEABase_1.56.0             plyr_1.8.8                 
+[117] hexbin_1.28.2               gplots_3.1.3               
+[119] zlibbioc_1.40.0             compiler_4.1.3             
+[121] BiocIO_1.4.0                illuminaio_0.36.0          
+[123] plotrix_3.8-2               clue_0.3-64                
+[125] Rsamtools_2.10.0            cli_3.6.0                  
+[127] XVector_0.34.0              Category_2.60.0            
+[129] ps_1.7.2                    MASS_7.3-55                
+[131] mgcv_1.8-39                 tidyselect_1.2.0           
+[133] stringi_1.7.12              yaml_2.3.7                 
+[135] askpass_1.1                 locfit_1.5-9.7             
+[137] tools_4.1.3                 parallel_4.1.3             
+[139] rstudioapi_0.14             uuid_1.1-0                 
+[141] foreach_1.5.2               farver_2.1.1               
+[143] digest_0.6.31               proto_1.0.0                
+[145] quadprog_1.5-8              Rcpp_1.0.10                
+[147] GenomicRanges_1.46.1        car_3.1-1                  
+[149] siggenes_1.68.0             broom_1.0.3                
+[151] org.Hs.eg.db_3.14.0         httr_1.4.5                 
+[153] ggdendro_0.1.23             AnnotationDbi_1.56.2       
+[155] colorspace_2.1-0            XML_3.99-0.13              
+[157] fs_1.6.1                    IRanges_2.28.0             
+[159] splines_4.1.3               RBGL_1.70.0                
+[161] multtest_2.50.0             plotly_4.10.1              
+[163] xtable_1.8-4                jsonlite_1.8.4             
+[165] R6_2.5.1                    RUnit_0.4.32               
+[167] gsubfn_0.7                  pillar_1.8.1               
+[169] htmltools_0.5.4             glue_1.6.2                 
+[171] fastmap_1.1.1               BiocParallel_1.28.3        
+[173] beanplot_1.3.1              codetools_0.2-18           
+[175] utf8_1.2.3                  lattice_0.20-45            
+[177] tibble_3.1.8                sqldf_0.4-11               
+[179] curl_5.0.0                  gtools_3.9.4               
+[181] GO.db_3.14.0                openssl_2.0.5              
+[183] survival_3.3-1              limma_3.50.3               
+[185] rmarkdown_2.20              repr_1.1.6                 
+[187] desc_1.4.2                  munsell_0.5.0              
+[189] GetoptLong_1.0.5            rhdf5_2.38.1               
+[191] GenomeInfoDbData_1.2.7      iterators_1.0.14           
+[193] RCy3_2.14.2                 HDF5Array_1.22.1           
+[195] reshape2_1.4.4              gtable_0.3.1               

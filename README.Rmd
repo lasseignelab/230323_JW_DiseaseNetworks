@@ -9,34 +9,66 @@ date: "`r Sys.Date()`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-**EDIT THIS DOCUMENT, NOT README.md** 
+# The Landscape of *SETBP1* tissue-specific gene expression and regulation
 
-# README Template 
-**[Replace this header with your project name]**
+## Authors
+**Jordan H. Whitlock Elizabeth J. Wilk, Timothy C. Howton, Amanda D. Clark, Brittany N. Lasseigne**
+
+The University of Alabama at Birmingham (UAB), Heersink School of Medicine, Department of Cell, Developmental and Integrative Biology (CDIB)
+
+[The Lasseigne Lab](https://www.lasseigne.org/)
+
+<img src="https://www.lasseigne.org/img/main/lablogo.png" width="90" height="90">
 
 ## Purpose 
 
-**[Replace this section with the purpose of your research project.]**
-This is an R Markdown document created for the Lasseigne Lab R Project Template. The project and README template are designed to create standardized R projects for research ongoing in the [Lasseigne Lab at the University of Alabama at Birmingham](https://www.lasseigne.org/) 
+**The purpose of this research is to investigate the tissue-specific expression and regulatory landscape of human *SETBP1* in GTEx tissues**
+This repository contains the code and accompanying data for our analysis of the tissue-specific expression and regulation of transcription factor (TF) *SETBP1* across 31 non-diseased human tissues part of the Genotype-tissue expression project (GTEx). This project is hypothesis generating, therefore emphasizing the role of different contexts, such as tissues, and the role they may play in disease when a variant is introduced.
 
+## Scripts
 
-## Installation/Dependencies OR Scripts 
+Here we provide a framework to investigate the following: 
 
-**[if project will be a package]** - this section should be titled "Installation"
-Include a code chunk on how to install your package 
+- [Tissue-specific expresion of *SETBP1* and its known targets](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/Tissue_Expression)
+```{r echo = FALSE}
+fs::dir_tree("src/Tissue_Expression")
+```
 
-**[if project will not be a package]** - this section should be titled "Dependencies" or "Scripts"
-Include a code chunk (if relevant) on what your project depends on. Include a "script tree" on how to reproduce your results with descriptions for all scripts
+- [Construction of tissue-specific gene regulatory networks](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/GTEx_PANDA)
+```{r echo = FALSE}
+fs::dir_tree("src/GTEx_PANDA")
+```
+  - Information on Network inputs and how to produce them can be found [here](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/panda_input_construction).
+```{r echo = FALSE}
+fs::dir_tree("src/panda_input_construction")
+```
 
-## Authors 
+- [Tissue-specific community detection](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/community_detection)
+```{r echo = FALSE}
+fs::dir_tree("src/community_detection")
+```
 
-List co-authors if known here. 
+- [SETBP1 TF activity analysis](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tf_activity)
+```{r echo = FALSE}
+fs::dir_tree("src/tf_activity")
+```
 
-## Lasseigne Lab 
+- [TF targeting](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tf_targeting)
+```{r echo = FALSE}
+fs::dir_tree("src/tf_targeting")
+```
 
-[What is Happening in the Lasseigne Lab?](https://www.lasseigne.org/)
+- [Tissue-specific edge identification](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tissue_specific_edges)
+```{r echo = FALSE}
+fs::dir_tree("src/tissue_specific_edges")
+```
 
-<img src="https://www.lasseigne.org/img/main/lablogo.png" width="75" height="75">
+*However, this code can be adapted and applied to other genes or TFs.*
+
+## Dependencies and Resources
+This analysis was carried out in Docker using R version 4.1.3. TF activity inference using [decoupleR](), [PANDA]() tissue-specific regulatory network generation, and tissue-specific edge identification were run using the Docker on UAB's high performance computing Cluster. Bash scripts including resources used are included in this repository. The containers have been made publicly available on Zenodo:
+
+[put Zenodo buttons here]
 
 ## Funding 
 
@@ -47,5 +79,7 @@ List project funding sources.
 List project acknowledgements.
 
 ## License 
+
+[![License](https://img.shields.io/badge/LICENSE-MIT_License-yellow)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/blob/main/LICENSE)
 
 This repository is licensed under the MIT License, see LICENSE documentation within this repository for more details.
