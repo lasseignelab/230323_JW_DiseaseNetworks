@@ -3,13 +3,14 @@
 
 # load in package libraries
 suppressPackageStartupMessages({
+  set.seed(2178)
   library(here)
   library(tidyverse)
   library(data.table)
 })
 
 
-# load in the input data needed
+# load in the input data needed and set up processing time
 setbp1_targets <- read.csv(
   file = here(
     "data/SETBP1_Targets/setbp1_targets_geneconversions.csv"
