@@ -19,6 +19,7 @@
 # mouse orthologs/aliases.
 
 suppressPackageStartupMessages({
+  set.seed(2178)
   library(tidyverse)
   library(here)
 })
