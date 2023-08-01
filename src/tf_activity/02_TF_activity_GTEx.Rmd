@@ -1,5 +1,5 @@
 ---
-title: "03_TF_activity_GTEx"
+title: "02_TF_activity_GTEx"
 author: "Jordan Whitlock"
 date: '2023-06-07'
 output: html_document
@@ -135,7 +135,7 @@ elapsed
 
 ```{r style-file}
 # run style
-style_file(here("src/tf_activity/03_TF_activity_GTEx.Rmd")) # commented out after being run once
+style_file(here("src/tf_activity/02_TF_activity_GTEx.Rmd")) # commented out after being run once
 # lintr was run as well
 ```
 

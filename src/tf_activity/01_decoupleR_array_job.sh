@@ -1,6 +1,6 @@
 #!/bin/bash
-## run the Rscript decoupleR_analysis.R and schedule this job to SLURM with
-## `sbatch decoupleR_array_job.sh`
+## run the Rscript 01_decoupleR_analysis.R and schedule this job to SLURM with
+## `sbatch 01_decoupleR_array_job.sh`
 
 #SBATCH --job-name=gtex_decoupleR 
 #SBATCH --mail-type=ALL
@@ -44,4 +44,4 @@ echo "Prior Network from ${PRIOR_NET}"
 #set minimum interaction number
 MIN_N=5
 
-singularity exec --cleanenv --no-home -B ${wd} -B /data/project/lasseigne_lab/DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/ $USER_DATA/230323_JW_DiseaseNetworks/bin/PANDA_construction_docker/jw_diseasenetworks_1.0.0.sif Rscript --vanilla ${wd}/src/tf_activity/02_decoupleR_analysis.R ${GTEX_FILE} ${PRIOR_NET} ${MIN_N}
+singularity exec --cleanenv --no-home -B ${wd} -B /data/project/lasseigne_lab/DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/ $USER_DATA/230323_JW_DiseaseNetworks/bin/PANDA_construction_docker/jw_diseasenetworks_1.0.0.sif Rscript --vanilla ${wd}/src/tf_activity/01_decoupleR_analysis.R ${GTEX_FILE} ${PRIOR_NET} ${MIN_N}
