@@ -3,6 +3,7 @@
 
 # load libraries
 suppressPackageStartupMessages({
+  set.seed(2178)
   library(here)
   library(tidyverse)
   library(ComplexHeatmap)
@@ -103,7 +104,7 @@ png(
   here(
     "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_clusters.png"
   ),
-  width = 25, height = 30, units = "cm", res = 300
+  width = 25, height = 30, units = "cm", res = 300 # height = 50 ensures legible y-axis
 )
 set.seed(1)
 

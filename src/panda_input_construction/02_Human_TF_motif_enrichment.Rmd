@@ -96,7 +96,7 @@ hu_motif_all <- unique(rbind(hu_motif_all, msig))
 ```
 
 ```{r save-human}
-write.table(hu_motif_all, file = here("data/motif_inputs/hu_motif_all.txt"), sep = "\t")
+write.table(hu_motif_all, file = here("data/hu_motif_all.txt"), sep = "\t")
 ```
 
 # Style file and lint file
