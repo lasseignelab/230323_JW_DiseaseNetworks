@@ -1,5 +1,4 @@
-# pull together human SETBP1 targets across data sets that JW found
-############# START JW's notes#############
+# pull together human SETBP1 targets across data sets:
 #* Obtained gene list of targets from msigdb SETBP1 target list
 #* (https://www.gsea-msigdb.org/gsea/msigdb/human/download_geneset.jsp?
 #* geneSetName=SETBP1_TARGET_GENES&fileType=TSV). The target list stored
@@ -18,7 +17,6 @@
 
 # The final target list is composed of 209 Human genes mapped to 682
 # mouse orthologs/aliases.
-#############END JW's notes#############
 
 suppressPackageStartupMessages({
   library(tidyverse)
@@ -68,7 +66,7 @@ lit_setbp1 <- c("SETBP1",
 # signor
 signor_setbp1 <- c("SET", "HOXA9", "HOXA10")
 # any in signor that are no in the literature list of targets?
-setdiff(signor_setbp1, lit_setbp1) # none, just using lit list moving forward
+setdiff(signor_setbp1, lit_setbp1) # 0;none, just using lit list moving forward
 
 # any in the literature list of targets that are not in the msigdb one?
 setdiff(lit_setbp1, msig_setbp1$gene_symbol)
@@ -88,7 +86,7 @@ write.csv(setbp1_targets_geneconversions,
 
 # end timer
 fptm <- proc.time() - ptm
-fptm[3] / 60 # script runtime in minutes
+fptm[3] / 60 # 0.85725; script runtime in minutes
 
 # save session info
 saveRDS(
