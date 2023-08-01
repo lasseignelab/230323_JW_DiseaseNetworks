@@ -1,5 +1,5 @@
 #!/bin/bash
-## run the Rscript PANDA.R and schedule this job to SLURM with
+## run the Rscript 02_PANDA.R and schedule this job to SLURM with
 ## `sbatch 02_PANDA_array.sh`
 
 #SBATCH --job-name=gPANDA
@@ -45,4 +45,4 @@ singularity exec --cleanenv --containall \
   -B /data/project/lasseigne_lab/DATASET_dir/TCGA_GTEx_CCLE_HPA_220807/gtex/ \
   -B /data/project/lasseigne_lab/JordanWhitlock/230323_JW_DiseaseNetworks \
   $USER_DATA/230323_JW_DiseaseNetworks/bin/PANDA_construction_docker/jw_diseasenetworks_1.0.0.sif \
-  Rscript --vanilla ${src}/GTEx_PANDA/PANDA.R ${wd} ${INPUT} # here vanilla ensures only the script is run and environment is kept clean
+  Rscript --vanilla ${src}/GTEx_PANDA/02_PANDA.R ${wd} ${INPUT} # here vanilla ensures only the script is run and environment is kept clean

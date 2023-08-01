@@ -7,7 +7,7 @@ date: '2022-11-15'
 * Generating PPI Input for Human:
   * STRING:
     * The NetZoo package has a nice wrapper function here: https://netzoo.github.io/netZooR/reference/source.PPI.html, however, one cannot change the filtering threshold using this package. 
-    * The stringDB package is used to pull in the latest version of string (v11.5, accessed 221026)
+    * The stringDB package is used to pull in the latest version of string (v11.5, accessed May 2023)
     * All that is needed is for the user to specify the input query TFs that an individual would like to search for in the string database. 
     * Then the species.index must be specified, here I use the human NCBI taxon-id (human - 9606; https://string-db.org/cgi/organisms).
   * Input TFs were obtained from the TF Motif input constructed for both species and enriched for additional databases to include CIS-BP, TRRUST, SIGNOR, and MSIGDB SETBP1 ChIP-seq data. The files are called 'hu_motif_all.txt' and 'mus_motif_all.txt'
@@ -32,7 +32,7 @@ library(STRINGdb)
 library(stringr)
 library(styler)
 library(here)
-source(here("src/functions/functions.R"))
+source(here("src/functions.R"))
 set.seed(2178)
 ```
 
