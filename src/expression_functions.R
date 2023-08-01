@@ -1,3 +1,15 @@
+# function to pull GTEx TPM values for one gene across tissues
+pull_gene_gtex <- function(file, gene){
+  tpm <- read.csv(file, row.name = 1)
+  gene_tpm <- tpm %>% 
+    dplyr::filter(., name == "SETBP1") %>% # filter for just gene of interest
+    dplyr::select(., "Tissue", starts_with("GTEX"), starts_with("K.562")) %>% 
+    pivot_longer(., cols = c(starts_with("GTEX"), starts_with("K.562")), values_to = unique(tpm$Tissue), values_drop_na = TRUE) #pivot for easier combining across tissues #pivot for easier combining across tissues
+  
+return(gene_tpm[,3]) #select just new column
+}
+
+
 # function to calculate median TPM values across GTEx samples for an input file
 # file = filepath of GTEx TPM csv file
 # cols_tpm = beginning identifier of desired columns' colnames to calculate median across
