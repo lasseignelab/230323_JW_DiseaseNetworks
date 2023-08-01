@@ -1,4 +1,18 @@
+# function to run gprofiler fea on each cluster from complexheatmap
+enrich_clusters <- function(cluster_df){
+  tempdf <- NULL
+  for(i in seq_along(unique(cluster_df$Cluster))){
+    clust <- dplyr::filter(cluster_df, Cluster == unique(cluster_df$Cluster)[i]) 
+    fea <- gprofiler2::gost(clust$GeneID, evcodes = TRUE, sources = "GO")
+    fea <- fea$result %>% mutate(., "Cluster" = paste(unique(cluster_df$Cluster)[i]), .before = "query")
+    
+    tempdf <- rbind(tempdf, fea)
+  }
+  return(tempdf)
+}
+
 # function to pull GTEx TPM values for one gene across tissues
+# filepath of GTEx TPM csv
 pull_gene_gtex <- function(file, gene){
   tpm <- read.csv(file, row.name = 1)
   gene_tpm <- tpm %>% 
