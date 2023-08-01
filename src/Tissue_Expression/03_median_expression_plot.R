@@ -3,6 +3,7 @@
 
 # load libraries
 suppressPackageStartupMessages({
+  set.seed(2178)
   library(here)
   library(tidyverse)
   source(here("src/expression_functions.R"))
@@ -10,7 +11,7 @@ suppressPackageStartupMessages({
 
 ptm <- proc.time() # start timer
 
-# list all subsetted files
+# list all subsetted files generated in `02_Setbp1_expression.R`
 setbp1_files <- list.files(
   path = here(
     "results/SETBP1_Expression/"
