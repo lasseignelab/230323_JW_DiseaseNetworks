@@ -30,7 +30,7 @@ as tissues, and the role they may play in disease when a variant is
 introduced.
 
 ## Overview
-![Copy of Overview_Fig](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/20e2c436-b570-41ba-9109-386dd7f7abde)
+![Copy of Overview_Fig (1)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/037e84f1-bab5-49c5-bc4c-a4fc1836e0cd)
 
 ## Scripts
 
