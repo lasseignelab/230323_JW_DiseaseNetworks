@@ -1,9 +1,9 @@
 # function to run gprofiler fea on each cluster from complexheatmap
-enrich_clusters <- function(cluster_df){
+enrich_clusters <- function(cluster_df, custom_bg = NULL){
   tempdf <- NULL
   for(i in seq_along(unique(cluster_df$Cluster))){
     clust <- dplyr::filter(cluster_df, Cluster == unique(cluster_df$Cluster)[i]) 
-    fea <- gprofiler2::gost(clust$GeneID, evcodes = TRUE, sources = "GO")
+    fea <- gprofiler2::gost(clust$GeneID, evcodes = TRUE, sources = "GO", correction_method = "bonferroni")
     fea <- fea$result %>% mutate(., "Cluster" = paste(unique(cluster_df$Cluster)[i]), .before = "query")
     
     tempdf <- rbind(tempdf, fea)
@@ -26,15 +26,14 @@ return(gene_tpm[,3]) #select just new column
 
 # function to calculate median TPM values across GTEx samples for an input file
 # file = filepath of GTEx TPM csv file
-# cols_tpm = beginning identifier of desired columns' colnames to calculate median across
 # identifier = desired new column location -- indicate which column to place the new column after
-calc_median_tpm <- function(file, cols_tpm = "GTEX", identifier = "Tissue"){
+calc_median_tpm <- function(file, identifier = "Tissue"){
   tpm <- read.csv(file, row.name = 1)
   #calculate median from 5:length(tpm) , mutate column ... across columns
   #median_tpm <- dplyr::mutate(rowwise(tpm), median = median(c(5:length(tpm))), .after = "Tissue")
   
   #use cols_tpm to select columns to calculate tpm rowwise
-  median_tpm <- tpm %>% dplyr::select(., starts_with(cols_tpm)) %>% apply(., 1, median)
+  median_tpm <- tpm %>% dplyr::select(., starts_with("GTEX"), starts_with("K.562")) %>% apply(., 1, median)
   #add calculated median TPM values to gtex df
   median_tpm <- tpm %>% mutate(., Median = median_tpm, .after = identifier)
   
@@ -43,7 +42,6 @@ return(median_tpm)
 
 # data wrangling specific to format from these analyses for easier plotting
 # median_tpm_df = output from calc_median_tpm
-# cols_tpm = beginning identifier of TPM counts to remove for minimal 
 # identifier = column with same string throughout -- used as colname for Median values to make aggregation across results easier
 pull_median_tpm <- function(median_tpm_df, identifier = "Tissue"){
   #print(paste(unique(median_tpm_df[identifier])))
@@ -59,8 +57,8 @@ return(median_tpm_simple)
 }
 
 # wrapper for calc_median_tpm and pull_median_tpm
-get_gtex_median_tpm <- function(file, cols_tpm = "GTEX", identifier = "Tissue"){
-  median_tpm_df <- calc_median_tpm(file, cols_tpm = cols_tpm, identifier = identifier)
+get_gtex_median_tpm <- function(file, identifier = "Tissue"){
+  median_tpm_df <- calc_median_tpm(file, identifier = identifier)
   median_tpm_simple <- pull_median_tpm(median_tpm_df, identifier = identifier)
   
 return(median_tpm_simple)
