@@ -11,6 +11,20 @@ suppressPackageStartupMessages({
 
 ptm <- proc.time() # start timer
 
+# affected tissues
+affected <- c(
+  "BLOOD",
+  "BRAIN",
+  "HEART",
+  "KIDNEY",
+  "BLADDER",
+  "LUNG",
+  "MUSCLE",
+  "SMALL_INTESTINE",
+  "STOMACH",
+  "ESOPHAGUS"
+)
+
 # list all subsetted files generated in `02_Setbp1_expression.R`
 setbp1_files <- list.files(
   path = here(
@@ -19,17 +33,11 @@ setbp1_files <- list.files(
   pattern = "_targets_tpm.csv", all.files = TRUE, full.names = TRUE
 )
 
-#pull SETBP1 expression across samples
-#ERROR in `dplyr::bind_cols()`:! Can't recycle `..1` (size 1293) to match `..2` (size 274).
-#setbp1_exp <- map_dfc(setbp1_files, pull_gene_gtex)
-#setbp1_exp <- map_dfc(setbp1_files, pull_gene_gtex)
-#BiocManager::install("rowr")
-#library(rowr)
-t <- pull_gene_gtex(setbp1_files[1])
-setbp1_exp_list <- map(setbp1_files, pull_gene_gtex)
-#t2 <- do.call(cbind.data.frame, t)
+### SETBP1 EXPRESSION
+# pull SETBP1 expression across samples
 setbp1_exp <- map_dfr(setbp1_files, pull_gene_gtex)
 
+# data wrangling for violin plot
 setbp1_med_tpm_vp <- setbp1_exp %>%
   pivot_longer(
     cols = everything(),
@@ -39,19 +47,12 @@ setbp1_med_tpm_vp <- setbp1_exp %>%
     TPM = log(1 + TPM, base = 2),
     .keep = "unused"
   ) %>% # scaling
-  # mutate(
-  #   Tissue = str_extract(
-  #     Tissue,
-  #     ".*(?=TPM)"
-  #   ),
-  #   .keep = "unused"
-  # ) %>% # remove excess from filenames
   mutate(Tissue = str_replace_all(Tissue, " ", "")) %>% # remove whitespace
   mutate(Affected = ifelse(Tissue %in% affected, "TRUE", "FALSE")) %>%
-  mutate(Tissue = str_to_title(str_replace_all(Tissue, "_", " "))) #%>%
+  mutate(Tissue = str_to_title(str_replace_all(Tissue, "_", " "))) # %>%
 
-#plot
-p <- setbp1_med_tpm_vp %>%  ggplot(aes(
+# plot
+p <- setbp1_med_tpm_vp %>% ggplot(aes(
   x = reorder(Tissue, TPM, FUN = median),
   y = TPM, color = Affected
 )) +
@@ -87,7 +88,7 @@ ggsave(
   height = 8, width = 6
 )
 
-
+### SETBP1 TARGET EXPRESSION
 # calculate median tpm of each gene for each tissue and compile list
 tissues_median_tpm <- map_dfc(setbp1_files, get_gtex_median_tpm)
 
@@ -98,22 +99,13 @@ write.csv(tissues_median_tpm, here(
   "results/SETBP1_Expression/aggregated_tissues_tpm_median.csv"
 ))
 
-# affected tissues
-affected <- c(
-  "BLOOD",
-  "BRAIN",
-  "HEART",
-  "KIDNEY",
-  "BLADDER",
-  "LUNG",
-  "MUSCLE",
-  "SMALL_INTESTINE",
-  "STOMACH",
-  "ESOPHAGUS"
-)
-#ENSG00000152217
+
 ## VIOLIN PLOT
-tissues_median_tpm <- tissues_median_tpm[!(row.names(tissues_median_tpm) %in% "ENSG00000152217"),]  #remove setbp1
+# remove setbp1 (ENSG00000152217 = setbp1)
+tissues_median_tpm <- tissues_median_tpm[!(
+  row.names(tissues_median_tpm) %in% "ENSG00000152217"), ]
+
+# data wrangling for violin plot
 tissues_med_tpm_vp <- tissues_median_tpm %>%
   pivot_longer(
     cols = everything(),
@@ -132,12 +124,12 @@ tissues_med_tpm_vp <- tissues_median_tpm %>%
   ) %>% # remove excess from filenames
   mutate(Tissue = str_replace_all(Tissue, " ", "")) %>% # remove whitespace
   mutate(Affected = ifelse(Tissue %in% affected, "TRUE", "FALSE")) %>%
-  mutate(Tissue = str_to_title(str_replace_all(Tissue, "_", " "))) #%>%
+  mutate(Tissue = str_to_title(str_replace_all(Tissue, "_", " "))) # %>%
 # plot
-p <- tissues_med_tpm_vp %>%  ggplot(aes(
-    x = reorder(Tissue, Median_TPM, FUN = median),
-    y = Median_TPM, color = Affected
-  )) +
+p <- tissues_med_tpm_vp %>% ggplot(aes(
+  x = reorder(Tissue, Median_TPM, FUN = median),
+  y = Median_TPM, color = Affected
+)) +
   geom_violin(trim = FALSE) +
   scale_color_manual(values = c(
     "TRUE" = alpha("#2C1D6C", 0.75),
@@ -172,7 +164,7 @@ ggsave(
 
 # end timer
 fptm <- proc.time() - ptm
-fptm[3] / 60 # script runtime in minutes: 0.1576
+fptm[3] / 60 # script runtime in minutes: 0.3915333
 
 # save session info
 saveRDS(
