@@ -102,7 +102,7 @@ colnames(tempdf) <- tissues_med_log$Name[1:4]
 # plot and save
 png(
   here(
-    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_clusters.png"
+    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_5clusters.png"
   ),
   width = 25, height = 30, units = "cm", res = 300 # height = 50 ensures legible y-axis
 )
@@ -117,7 +117,7 @@ top_ha <- ComplexHeatmap::HeatmapAnnotation(
 )
 hm_sb1_tar <- ComplexHeatmap::Heatmap(
   as.matrix(targets_tissue[, 2:length(targets_tissue)]),
-  km = 3,
+  km = 5,
   col = col_fun,
   #row_labels = targets_tissue[, 1],
   #row_names_gp = gpar(fontsize = 6),
@@ -156,7 +156,7 @@ plot <- cluster_fea %>%
   scale_fill_distiller(palette = "Purples") + 
   labs(x = "Recall", y = "Terms") +
   theme_minimal()
-ggsave(here("results/SETBP1_Expression/plots/fea_clusters_bubbleplot.png"), width = 8, height = 9)
+ggsave(here("results/SETBP1_Expression/plots/fea_5clusters_bubbleplot.png"), width = 8, height = 9, bg = "white")
 
 # end timer
 fptm <- proc.time() - ptm
