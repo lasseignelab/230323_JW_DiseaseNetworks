@@ -124,12 +124,13 @@ png(
   width = 25, height = 30, units = "cm", res = 300 # height = 50 ensures legible y-axis
 )
 set.seed(1)
-
+ht_opt(heatmap_column_names_gp = gpar(fontface = "bold"))
 top_ha <- ComplexHeatmap::HeatmapAnnotation(
   SETBP1 = tempdf[, 4],
   name = "SETBP1",
   col = list(SETBP1 = col_fun),
   show_legend = FALSE,
+  #gp = gpar(fontface = "bold"),
   annotation_label = "SETBP1"
 )
 hm_sb1_tar <- ComplexHeatmap::Heatmap(
@@ -189,7 +190,7 @@ p <- cluster_fea %>%
     plot.title = element_text(size = 14, hjust = 0.5)
   )
 p
-ggsave(here("results/SETBP1_Expression/plots/fea_5clusters_bubbleplot_test2.png"), width = 8, height = 9, bg = "white")
+ggsave(here("results/SETBP1_Expression/plots/fea_3clusters_bubbleplot.png"), width = 8, height = 9, bg = "white")
 
 # end timer
 fptm <- proc.time() - ptm
