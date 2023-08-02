@@ -9,7 +9,7 @@ date: "`r Sys.Date()`"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# The Landscape of *SETBP1* tissue-specific gene expression and regulation
+# The Landscape of *SETBP1* tissue-specific gene expression and regulation across human tissues
 
 ## Authors
 **Jordan H. Whitlock Elizabeth J. Wilk, Timothy C. Howton, Amanda D. Clark, Brittany N. Lasseigne**
