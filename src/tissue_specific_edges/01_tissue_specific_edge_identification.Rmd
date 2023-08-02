@@ -34,6 +34,12 @@ affected <- c(
 )
 ```
 
+```{r loading-geneset}
+# load in gene set for SETBP1 (converted by LW)
+setbp1_genes <- read.csv(here("data/SETBP1_Targets/setbp1_targets_geneconversions.csv"))
+setbp1_genes <- setbp1_genes$name %>% as.vector()
+```
+
 
 # generating edges from the regNet
 ```{r}
@@ -108,12 +114,12 @@ merged_df[, -1] <- t(apply(merged_df[, -1], 1, function(x) (x - med_iqr_df$media
 merged_df$multiplicity <- apply(merged_df[-1], 1, function(x) sum(x > 2))
 multiplicity <- merged_df[, c(1, 33)]
 
-save(merged_df, file = here("results/ts_edges/specificity_multiplicity.Rdata"))
+save(merged_df, file = here("results/tissue_specific_edges/specificity_multiplicity.Rdata"))
 
 multiplicity <- multiplicity %>%
   separate(edges, into = c("TF", "gene"), sep = "_", remove = FALSE) # split edges
 
-save(multiplicity, file = here("results/ts_edges/multiplicity.Rdata"))
+save(multiplicity, file = here("results/tissue_specific_edges/multiplicity.Rdata"))
 ```
 
 # define tissue specific edges as those with a specificity scores > 2
@@ -163,13 +169,14 @@ data <- data[data$name %in% setbp1_genes,]# filter for known targets of SETBP1
 ```
 
 ```{r assign-mult-to-ts-setbp1-comm-edges}
-mult_genes <- multiplicity %>% separate(edges, c("tf", "gene")) #grab multiplicity
+mult_genes <- multiplicity[!grepl("-", multiplicity$gene),] # remove genes with alternate alleles aka a "-"
+mult_genes <- mult_genes %>% separate(edges, c("tf", "gene")) #grab multiplicity
 
 merged_data <- left_join(data, mult_genes, by = c('name' = 'gene')) # add multiplicity to tse community data
 
-affected_merged <- merged_data[merged_data$tissue_type %in% affected,] # filter for affected tissues
+merged_data_gene <- merged_data[merged_data$entity == "gene",] %>% na.omit(.) # filter for only genes
 
-affected_merged <- affected_merged[affected_merged$entity == "gene",] %>% na.omit(.) # filter for only genes
+affected_merged <- merged_data_gene[merged_data_gene$tissue_type %in% affected,] # filter for affected tissues
 ```
 
 ```{r visualize-tse-in-setbp1-comm-mult}
