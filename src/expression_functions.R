@@ -1,3 +1,29 @@
+# function to run gprofiler fea on each cluster from complexheatmap
+enrich_clusters <- function(cluster_df){
+  tempdf <- NULL
+  for(i in seq_along(unique(cluster_df$Cluster))){
+    clust <- dplyr::filter(cluster_df, Cluster == unique(cluster_df$Cluster)[i]) 
+    fea <- gprofiler2::gost(clust$GeneID, evcodes = TRUE, sources = "GO")
+    fea <- fea$result %>% mutate(., "Cluster" = paste(unique(cluster_df$Cluster)[i]), .before = "query")
+    
+    tempdf <- rbind(tempdf, fea)
+  }
+  return(tempdf)
+}
+
+# function to pull GTEx TPM values for one gene across tissues
+# filepath of GTEx TPM csv
+pull_gene_gtex <- function(file, gene){
+  tpm <- read.csv(file, row.name = 1)
+  gene_tpm <- tpm %>% 
+    dplyr::filter(., name == "SETBP1") %>% # filter for just gene of interest
+    dplyr::select(., "Tissue", starts_with("GTEX"), starts_with("K.562")) %>% 
+    pivot_longer(., cols = c(starts_with("GTEX"), starts_with("K.562")), values_to = unique(tpm$Tissue), values_drop_na = TRUE) #pivot for easier combining across tissues #pivot for easier combining across tissues
+  
+return(gene_tpm[,3]) #select just new column
+}
+
+
 # function to calculate median TPM values across GTEx samples for an input file
 # file = filepath of GTEx TPM csv file
 # cols_tpm = beginning identifier of desired columns' colnames to calculate median across

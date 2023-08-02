@@ -119,8 +119,9 @@ hm_sb1_tar <- ComplexHeatmap::Heatmap(
   as.matrix(targets_tissue[, 2:length(targets_tissue)]),
   km = 3,
   col = col_fun,
-  row_labels = targets_tissue[, 1],
-  row_names_gp = gpar(fontsize = 6),
+  #row_labels = targets_tissue[, 1],
+  #row_names_gp = gpar(fontsize = 6),
+  show_row_names = FALSE,
   heatmap_legend_param = list(title = "Scaled TPM"),
   top_annotation = top_ha
 )
@@ -143,20 +144,19 @@ clu_df <- lapply(names(clust_list), function(i) {
 }) %>% # pipe (forward) the output 'out' to the function rbind
   do.call(rbind, .)
 
-# full gene annotations for each cluster
-clu_df_anno <- clu_df %>%
-  inner_join(., setbp1_targets, by = c("GeneID" = "name"), multiple = "all")
-
 # FEA of each cluster
-cl1_fea <- clu_df %>% dplyr::filter(., Cluster == "cluster1") # %>%
-cl1_fea <- gprofiler2::gost(cl1_fea$GeneID, evcodes = TRUE)
+cluster_fea <- enrich_clusters(clu_df)
 
-cl2_fea <- clu_df %>% dplyr::filter(., Cluster == "cluster2") # %>%
-cl2_fea <- gprofiler2::gost(cl2_fea$GeneID, evcodes = TRUE)
-
-
-cl3_fea <- clu_df %>% dplyr::filter(., Cluster == "cluster3") # %>%
-cl3_fea <- gprofiler2::gost(cl3_fea$GeneID, evcodes = TRUE)
+plot <- cluster_fea %>% 
+  dplyr::filter(., p_value < 0.05) %>%
+  ggplot(., aes(x = Cluster, y = reorder(term_name, -p_value), size = recall, fill =
+                                     p_value)) +
+  geom_point(alpha = 0.7, shape = 21) +
+  scale_size(range = c(2, 10), name = "Recall") + 
+  scale_fill_distiller(palette = "Purples") + 
+  labs(x = "Recall", y = "Terms") +
+  theme_minimal()
+ggsave(here("results/SETBP1_Expression/plots/fea_clusters_bubbleplot.png"), width = 8, height = 9)
 
 # end timer
 fptm <- proc.time() - ptm

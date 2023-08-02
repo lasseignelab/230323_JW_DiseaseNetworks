@@ -19,8 +19,12 @@ setbp1_files <- list.files(
   pattern = "_targets_tpm.csv", all.files = TRUE, full.names = TRUE
 )
 
+#pull SETBP1 expression across samples
+#ERROR in `dplyr::bind_cols()`:! Can't recycle `..1` (size 1293) to match `..2` (size 274).
+#setbp1_exp <- map_dfc(setbp1_files, pull_gene_gtex)
+
 # calculate median tpm of each gene for each tissue and compile list
-tissues_median_tpm <- map_dfc(setbp1_files, get_gtex_median_tpm)
+tissues_median_tpm <- map_dfc(setbp1_files[6:31], get_gtex_median_tpm)
 
 # remove any columns with NAs
 tissues_median_tpm <- tissues_median_tpm %>% select_if(~ !any(is.na(.)))
