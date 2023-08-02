@@ -154,10 +154,23 @@ plot <- cluster_fea %>%
   scale_size(range = c(2, 10), name = "Recall") + 
   scale_fill_distiller(palette = "Purples") + 
   labs(x = "Recall", y = "Terms") +
-  theme_minimal()
-ggsave(here(
-  "results/SETBP1_Expression/plots/fea_3clusters_bubbleplot.png"),
-  width = 8, height = 9, bg = "white")
+  theme(
+    panel.grid.major = element_line("gray95"),
+    #panel.grid.minor = element_blank(),
+    panel.background = element_blank(),
+    text = element_text(family = "Helvetica"),
+    #axis.text.x = element_text(color = "black", size = 10),
+    axis.text.y = element_text(color = "black"),
+    axis.text.x = element_text(color = "black"),
+    axis.text = element_text(face = "bold"),
+    legend.title = element_text(face = "bold"),
+    legend.text = element_text(face = "bold"),
+    axis.title.y = element_text(face = "bold"),
+    axis.title.x = element_text(face = "bold"),
+    title = element_text(face = "bold"),
+    plot.title = element_text(size = 14, hjust = 0.5)
+  )
+ggsave(here("results/SETBP1_Expression/plots/fea_3clusters_bubbleplot.png"), width = 8, height = 9, bg = "white")
 
 # end timer
 fptm <- proc.time() - ptm
