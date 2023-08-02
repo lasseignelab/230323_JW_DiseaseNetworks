@@ -65,6 +65,8 @@ for (t in 1:length(toevaluate)) {
 }
 
 names(condor_list) <- toevaluate
+
+save(condor_list, file = here("results/condor/condor_list.Rdata"))
 ```
 
 ```{r diff-comm-members-of-setbp1-targets}

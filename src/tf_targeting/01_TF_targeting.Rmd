@@ -189,7 +189,7 @@ dev.off()
 ```
 
 ## Filtering for only positive edge weights, and calculating targeting scores:
-Gene targeting score, a numerical score representing the extent to which a gene is targeted by TFs in a given biological context. The gene targeting score is calculated by summing the weights of all inbound regulatory edges for a gene (https://doi.org/10.3389/fgene.2021.649942). 
+TF targeting score, a numerical score representing the extent to which a TF is targeting genes in a given biological context. The TF targeting score is calculated by summing the weights of all inbound regulatory edges for a gene (https://doi.org/10.3389/fgene.2021.649942). 
 * regNetmatrix: The PANDA regNet output matrix of TF and Genes and their edge weights from running pandaR on GTEx expression, TF-Motif, and PPI inputs.
 
 

@@ -1,8 +1,8 @@
 README
 ================
-2023-08-01
+2023-08-02
 
-# The Landscape of *SETBP1* tissue-specific gene expression and regulation
+# The Landscape of *SETBP1* tissue-specific gene expression and regulation across human tissues
 
 ## Authors
 
@@ -82,7 +82,6 @@ Here we provide a framework to investigate the following:
 <!-- -->
 
     ## src/tf_activity
-    ## +-- 01_GTExSetbp1_decoupleR_inputs.Rmd
     ## +-- 01_decoupleR_analysis.R
     ## +-- 01_decoupleR_array_job.sh
     ## +-- 02_TF_activity_GTEx.Rmd
@@ -103,17 +102,7 @@ Here we provide a framework to investigate the following:
 <!-- -->
 
     ## src/tissue_specific_edges
-    ## +-- 01_merging_regNet.R
-    ## +-- 01_merging_regNet.sh
-    ## +-- 02_calculating_tissue_specific_edges_multiplicity.R
-    ## +-- 02_calculating_tissue_specific_edges_multiplicity.sh
-    ## +-- 03_identifying_tissue_specific_edges.R
-    ## +-- 03_identifying_tissue_specific_edges.sh
-    ## +-- 04_tissue_specific_edges.Rmd
-    ## +-- merged.err
-    ## +-- merged.out
-    ## +-- tse_mult.err
-    ## \-- tse_mult.out
+    ## \-- 01_tissue_specific_edge_identification.Rmd
 
 *However, this code can be adapted and applied to other genes or TFs.*
 
