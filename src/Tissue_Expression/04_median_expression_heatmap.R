@@ -119,7 +119,7 @@ colnames(tempdf) <- tissues_med_log$Name[1:4]
 # plot and save
 png(
   here(
-    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_5clusters.png"
+    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_3clusters.png"
   ),
   width = 25, height = 30, units = "cm", res = 300 # height = 50 ensures legible y-axis
 )
