@@ -1,9 +1,9 @@
 # function to run gprofiler fea on each cluster from complexheatmap
-enrich_clusters <- function(cluster_df){
+enrich_clusters <- function(cluster_df, custom_bg = NULL){
   tempdf <- NULL
   for(i in seq_along(unique(cluster_df$Cluster))){
     clust <- dplyr::filter(cluster_df, Cluster == unique(cluster_df$Cluster)[i]) 
-    fea <- gprofiler2::gost(clust$GeneID, evcodes = TRUE, sources = "GO")
+    fea <- gprofiler2::gost(clust$GeneID, evcodes = TRUE, sources = "GO", correction_method = "bonferroni")
     fea <- fea$result %>% mutate(., "Cluster" = paste(unique(cluster_df$Cluster)[i]), .before = "query")
     
     tempdf <- rbind(tempdf, fea)

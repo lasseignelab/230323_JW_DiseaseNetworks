@@ -94,6 +94,24 @@ col_fun <- circlize::colorRamp2(
   )
 )
 
+# Decide number of k means clusters, adapted code from https://www.r-bloggers.com/2020/05/how-to-determine-the-number-of-clusters-for-k-means-in-r/#:~:text=We%20can%20determine%20the%20number,K%20which%20maximizes%20that%20score.
+# Use map_dbl to run many models with varying value of k (centers)
+tot_withinss <- map_dbl(1:10,  function(k){
+  model <- kmeans(x = tissues_med_log[, 2:length(tissues_med_log)], centers = k)
+  model$tot.withinss
+})
+
+# Generate a data frame containing both k and tot_withinss
+elbow_df <- data.frame(
+  k = 1:10,
+  tot_withinss = tot_withinss
+)
+# Plot the elbow plot
+ggplot(elbow_df, aes(x = k, y = tot_withinss)) +
+  geom_line() + geom_point()+
+  scale_x_continuous(breaks = 1:10)
+
+
 # pulling first 4 columns to wrangle setbp1 (4th row) to use as annotation
 tempdf <- t(as.matrix(tissues_med_log[1:4, 2:length(tissues_med_log)]))
 colnames(tempdf) <- tissues_med_log$Name[1:4]
@@ -101,7 +119,7 @@ colnames(tempdf) <- tissues_med_log$Name[1:4]
 # plot and save
 png(
   here(
-    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_3clusters.png"
+    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_5clusters.png"
   ),
   width = 25, height = 30, units = "cm", res = 300 # height = 50 ensures legible y-axis
 )
@@ -144,9 +162,9 @@ clu_df <- lapply(names(clust_list), function(i) {
   do.call(rbind, .)
 
 # FEA of each cluster
-cluster_fea <- enrich_clusters(clu_df)
+cluster_fea <- enrich_clusters(clu_df, custom_bg = clu_df$GeneID)
 
-plot <- cluster_fea %>% 
+p <- cluster_fea %>% 
   dplyr::filter(., p_value < 0.05) %>%
   ggplot(., aes(x = Cluster, y = reorder(term_name, -p_value), size = recall, fill =
                                      p_value)) +
@@ -170,7 +188,8 @@ plot <- cluster_fea %>%
     title = element_text(face = "bold"),
     plot.title = element_text(size = 14, hjust = 0.5)
   )
-ggsave(here("results/SETBP1_Expression/plots/fea_3clusters_bubbleplot.png"), width = 8, height = 9, bg = "white")
+p
+ggsave(here("results/SETBP1_Expression/plots/fea_5clusters_bubbleplot_test2.png"), width = 8, height = 9, bg = "white")
 
 # end timer
 fptm <- proc.time() - ptm
