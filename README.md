@@ -29,6 +29,9 @@ generating, therefore emphasizing the role of different contexts, such
 as tissues, and the role they may play in disease when a variant is
 introduced.
 
+## Overview
+![Overview_Fig (1)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/df8d965f-8008-48b7-8eab-50dc60783f77)
+
 ## Scripts
 
 Here we provide a framework to investigate the following:
