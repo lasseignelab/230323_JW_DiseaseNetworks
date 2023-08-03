@@ -30,7 +30,8 @@ setbp1_genes <- append(setbp1_genes, "Setbp1")
 setbp1_genes <- toupper(setbp1_genes)
 ```
 
-```{r load-CollecTRI-prior-mouse}
+```{r load-CollecTRI-prior}
+# filepath to CollecTRI prior
 collectri <- read_csv(here("data/human_prior_tri.csv"))
 ```
 
