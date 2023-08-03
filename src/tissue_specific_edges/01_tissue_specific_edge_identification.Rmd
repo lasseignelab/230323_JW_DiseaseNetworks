@@ -100,12 +100,16 @@ We wanted to identify tissue-specific edges as previously defined in [Sonawane e
 # ln(e^x + 1) transform edge weights to address negatives
 merged_df <- merged_df %>% mutate(across(-1, ~ log(exp(.) + 1)))
 
+save(merged_df, file = here("results/tissue_specific_edges/merged_edges_transformed.Rdata"))
+
 # make df for storing median and iqr
 med_iqr_df <- data.frame(edges = merged_df$edges)
 
 # calculate median and IQR for each edge (row) across all tissues
 med_iqr_df$median_all <- apply(merged_df[, -1], 1, median) # median for each row
 med_iqr_df$IQR_all <- apply(merged_df[, -1], 1, IQR) # IQR for each row
+
+save(med_iqr_df, file = here("results/tissue_specific_edges/med_iqr_df.Rdata"))
 
 # compare edge weights across tissues using Sonawane et al Equation 2 to calculate specificity scores
 merged_df[, -1] <- t(apply(merged_df[, -1], 1, function(x) (x - med_iqr_df$median_all) / med_iqr_df$IQR_all)) # transpose because apply returns rows as tissues and columns as edges
@@ -240,17 +244,58 @@ ggplot(counts, aes(y = Freq, x = Var1)) +
 dev.off()
 ```
 
+
 NOTE FOR CR: Need docker version sebtp1_manuscript:1.0.12
+Code below for UpSet plot was adapted from vignette [here](https://jokergoo.github.io/ComplexHeatmap-reference/book/upset-plot.html) 
 ```{r uset-plot-overlapping-edges}
+# identifying quartiles for multiplcity
+summary(affected_merged$multiplicity)
+#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#   1.00   25.00   30.00   25.79   31.00   31.00 
+
+# filtering to excude edges that have a multiplicity of less than or equal to Q1
+affected_merged <- affected_merged[affected_merged$multiplicity <= 25, ]
+
 # formatting data
 subset <- subset(affected_merged, select = c("name", "tissue_type")) # selecting columns of interest
+
 subset$present <- 1# adding a count for sets
 subset <- pivot_wider(subset, names_from = name, values_from = present) # pivoting wider
 subset <- mutate_all(subset, ~replace_na(.,0)) #change NA to 0
 subset$tissue_type <- str_to_title(subset$tissue_type) %>% gsub("_", " ", .)#reformat tissue type
+row_names_data <- subset$tissue_type
+subset <- subset[,-1]
+rownames(subset) <- row_names_data
+
+m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
+t(m1) #view
+
+# plotting upset plot
+png(
+  filename = here("results/tissue_specific_edges/upset_plot.png"),
+  width = 3000,
+  height = 2000,
+res = 300
+)
+UpSet(m1, left_annotation = upset_left_annotation(m1))
+dev.off()
+
+# making the combination matrix
+subset <- t(subset)
+
+m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
+t(m1) #view
+
+# plotting upset plot
+png(
+  filename = here("results/tissue_specific_edges/upset_plot.png"),
+  width = 3000,
+  height = 2000,
+res = 300
+)
+UpSet(m1, left_annotation = upset_left_annotation(m1))
+dev.off()
 ```
-
-
 
 ```{r}
 # run style
