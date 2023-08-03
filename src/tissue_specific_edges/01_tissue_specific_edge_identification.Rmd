@@ -104,6 +104,8 @@ We wanted to identify tissue-specific edges as previously defined in [Sonawane e
 merged_df <- merged_df %>% mutate(across(-1, ~ log(exp(.) + 1)))
 save(merged_df, file = here("results/tissue_specific_edges/merged_df_transform_weights.Rdata"))
 
+save(merged_df, file = here("results/tissue_specific_edges/merged_edges_transformed.Rdata"))
+
 # make df for storing median and iqr
 med_iqr_df <- data.frame(edges = merged_df$edges)
 
@@ -111,7 +113,11 @@ med_iqr_df <- data.frame(edges = merged_df$edges)
 med_iqr_df$median_all <- apply(merged_df[, -1], 1, median) # median for each row
 med_iqr_df$IQR_all <- apply(merged_df[, -1], 1, IQR) # IQR for each row
 
+<<<<<<< HEAD
 save(med_iqr, file = here("results/tissue_specific_edges/med_iqr.Rdata"))
+=======
+save(med_iqr_df, file = here("results/tissue_specific_edges/med_iqr_df.Rdata"))
+>>>>>>> main
 
 # compare edge weights across tissues using Sonawane et al Equation 2 to calculate specificity scores
 merged_df[, -1] <- t(apply(merged_df[, -1], 1, function(x) (x - med_iqr_df$median_all) / med_iqr_df$IQR_all)) # transpose because apply returns rows as tissues and columns as edges
@@ -252,6 +258,7 @@ ggplot(counts, aes(y = Freq, x = Var1)) +
 dev.off()
 ```
 
+
 NOTE FOR CR: Need docker version sebtp1_manuscript:1.0.12
 Code below for UpSet plot was adapted from vignette [here](https://jokergoo.github.io/ComplexHeatmap-reference/book/upset-plot.html) 
 ```{r uset-plot-overlapping-edges}
@@ -273,6 +280,7 @@ subset$tissue_type <- str_to_title(subset$tissue_type) %>% gsub("_", " ", .)#ref
 row_names_data <- subset$tissue_type
 subset <- subset[,-1]
 rownames(subset) <- row_names_data
+<<<<<<< HEAD
 
 m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
 t(m1) #view
@@ -287,6 +295,22 @@ res = 300
 UpSet(m1, left_annotation = upset_left_annotation(m1))
 dev.off()
 
+=======
+
+m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
+t(m1) #view
+
+# plotting upset plot
+png(
+  filename = here("results/tissue_specific_edges/upset_plot.png"),
+  width = 3000,
+  height = 2000,
+res = 300
+)
+UpSet(m1, left_annotation = upset_left_annotation(m1))
+dev.off()
+
+>>>>>>> main
 # making the combination matrix
 subset <- t(subset)
 
