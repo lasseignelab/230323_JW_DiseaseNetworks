@@ -1,6 +1,6 @@
 #!/bin/bash
-## run the Rscript decoupleR_analysis.R and schedule this job to SLURM with
-## `sbatch decoupleR_array_job.sh`
+## run the Rscript 02_decoupleR_analysis.R and schedule this job to SLURM with
+## `sbatch 02_decoupleR_array_job.sh`
 
 #SBATCH --job-name=gtex_decoupleR 
 #SBATCH --mail-type=ALL

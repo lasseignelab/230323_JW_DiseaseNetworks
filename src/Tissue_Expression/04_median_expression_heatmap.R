@@ -36,7 +36,8 @@ affected <- c(
   "MUSCLE",
   "SMALL_INTESTINE",
   "STOMACH",
-  "ESOPHAGUS"
+  "ESOPHAGUS",
+  "BONE_MARROW"
 )
 
 # load in gene labels

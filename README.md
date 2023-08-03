@@ -29,6 +29,9 @@ generating, therefore emphasizing the role of different contexts, such
 as tissues, and the role they may play in disease when a variant is
 introduced.
 
+## Overview
+![Overview_Fig (4)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/3e13cab2-9db5-4923-be0a-372a1f4e45fa)
+
 ## Scripts
 
 Here we provide a framework to investigate the following:
@@ -118,8 +121,7 @@ The containers have been made publicly available on Zenodo:
 \[put Zenodo buttons here\]
 
 ## Funding
-
-List project funding sources.
+This work was supported in part by the UAB Lasseigne Lab funds, UAB Pilot Center for Precision Animal Modeling (C-PAM)(1U54OD030167) and JW UAB Predoctoral Training Grant in Cell, Molecular, and Developmental Biology (CMDB T32)(5T32GM008111-35).
 
 ## Acknowledgements
 

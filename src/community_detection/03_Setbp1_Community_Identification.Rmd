@@ -36,8 +36,9 @@ condor_list <- list()
 for (t in 1:length(toevaluate)) {
   # Load condor communities
   readcomms <- paste(here("results/condor/membership/gtex_"),
-                     toevaluate[t], "_membership.RData",
-                     sep = "")
+    toevaluate[t], "_membership.RData",
+    sep = ""
+  )
   load(readcomms) # environment variable called condor_memb
 
   # wrangle condor communities into dataframe
@@ -82,16 +83,17 @@ subset_dfs <- lapply(names(condor_list), function(list_name) {
 setbp1_communities <- bind_rows(subset_dfs)
 
 # save
-write.csv(setbp1_communities, 
-          file = here("results/condor/gtex_communities_setbp1_geneset.csv"),
-          row.names = FALSE)
+write.csv(setbp1_communities,
+  file = here("results/condor/gtex_communities_setbp1_geneset.csv"),
+  row.names = FALSE
+)
 ```
 
 
 ```{r investigating-community-size}
 data <- read.csv(here("results/condor/gtex_communities_setbp1_geneset.csv"))
 
-subset_names <- data[data$name == "SETBP1" & data$entity == "TF",]
+subset_names <- data[data$name == "SETBP1" & data$entity == "TF", ]
 subset_names <- subset_names %>% unite(tissue_comm, tissue_type, condor_memb, sep = "_")
 subset_names <- subset_names$tissue_comm
 
@@ -100,7 +102,7 @@ combo_name <- combo_name$tissue_comm
 
 data$combo_name <- combo_name
 
-data <- data[data$combo_name %in% subset_names,]
+data <- data[data$combo_name %in% subset_names, ]
 
 summary_data <- data %>%
   group_by(tissue_type, condor_memb) %>%
@@ -120,6 +122,7 @@ comm_data <- comm_data %>%
 comm_data$tissue_comm <- col <- sub("_[^_]*$", "", comm_data$tissue_comm)
 comm_data$tissue_comm <- str_to_title(comm_data$tissue_comm) %>% gsub("_", " ", .)
 
+# reorder by community size and plot
 
 png(
   filename = here("results/condor/SETBP1_community_size.png"),
@@ -127,12 +130,15 @@ png(
   height = 2000,
   res = 300
 )
-ggplot(comm_data, aes(y = tissue_comm, x = count, fill = condor_memb)) +
-  geom_bar(stat = "identity") + 
-  scale_fill_manual(values = c("#D3B1C5", "#A468A9", "#533180", "#2C1D6C")) + 
+comm_data %>%
+  arrange(count) %>%
+  mutate(name = factor(tissue_comm, levels = tissue_comm)) %>%
+  ggplot(aes(y = name, x = count, fill = condor_memb)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#D3B1C5", "#A468A9", "#533180", "#2C1D6C")) +
   theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
-  theme(axis.text.x = element_text(color = "black")) + 
+  theme(axis.text.x = element_text(color = "black")) +
   theme(axis.text.y = element_text(color = "black")) +
   theme(axis.text = element_text(face = "bold")) +
   theme(legend.title = element_text(face = "bold")) +
@@ -141,13 +147,15 @@ ggplot(comm_data, aes(y = tissue_comm, x = count, fill = condor_memb)) +
   theme(axis.title.x = element_text(face = "bold")) +
   labs(x = "SETBP1 Community Size", y = "GTEx Tissue", fill = "Community Number") +
   ggtitle("SETBP1 Community Size across GTEx Tissues") +
-  theme(title = element_text(face = "bold"),
-        plot.title = element_text(hjust = 0, size = 20),
-        axis.title.x = element_text(size = 16),
-        axis.title.y = element_text(size = 16),
-        axis.text.x = element_text(size = 16),
-        axis.text.y = element_text(size = 16))
-    
+  theme(
+    title = element_text(face = "bold"),
+    plot.title = element_text(hjust = 0, size = 20),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16)
+  )
+
 dev.off()
 ```
 
@@ -165,9 +173,10 @@ output <- filtered_df %>%
 # Print the output
 print(output) # Setbp1 is in community 1 for all cell types in cortex
 
-write.csv(output, 
-          file = here("results/condor/communitynumber_setbp1_TF.csv"),
-          row.names = FALSE)
+write.csv(output,
+  file = here("results/condor/communitynumber_setbp1_TF.csv"),
+  row.names = FALSE
+)
 ```
 SETBP1 TF Communities:		
 ADIPOSE_TISSUE	1			
@@ -222,7 +231,8 @@ print(combinations_vector_setbp1_TF)
 
 # save vector for Jaccard similarity
 save(combinations_vector_setbp1_TF,
-     file = here("results/condor/setbp1_TF_combinations_vector.Rdata"))
+  file = here("results/condor/setbp1_TF_combinations_vector.Rdata")
+)
 ```
 
 ```{r processing-time}
