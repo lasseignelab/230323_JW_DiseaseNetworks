@@ -22,7 +22,8 @@ affected <- c(
   "MUSCLE",
   "SMALL_INTESTINE",
   "STOMACH",
-  "ESOPHAGUS"
+  "ESOPHAGUS",
+  "BONE_MARROW"
 )
 
 # list all subsetted files generated in `02_Setbp1_expression.R`

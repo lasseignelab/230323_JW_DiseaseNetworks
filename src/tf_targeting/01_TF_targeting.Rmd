@@ -50,7 +50,8 @@ affected <- c(
   "SMALL_INTESTINE",
   "STOMACH",
   "ESOPHAGUS",
-  "BLOOD"
+  "BLOOD",
+  "BONE_MARROW"
 )
 ```
 

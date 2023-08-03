@@ -30,7 +30,8 @@ affected <- c(
   "MUSCLE",
   "SMALL_INTESTINE",
   "STOMACH",
-  "ESOPHAGUS"
+  "ESOPHAGUS",
+  "BONE_MARROW"
 )
 ```
 
@@ -112,6 +113,8 @@ merged_df[, -1] <- t(apply(merged_df[, -1], 1, function(x) (x - med_iqr_df$media
 
 # calculate multiplicity
 merged_df$multiplicity <- apply(merged_df[-1], 1, function(x) sum(x > 2))
+hist(merged_df$multiplicity) # visualize
+
 multiplicity <- merged_df[, c(1, 33)]
 
 save(merged_df, file = here("results/tissue_specific_edges/specificity_multiplicity.Rdata"))
@@ -249,7 +252,6 @@ subset <- pivot_wider(subset, names_from = name, values_from = present) # pivoti
 subset <- mutate_all(subset, ~replace_na(.,0)) #change NA to 0
 subset$tissue_type <- str_to_title(subset$tissue_type) %>% gsub("_", " ", .)#reformat tissue type
 ```
-
 
 
 ```{r}
