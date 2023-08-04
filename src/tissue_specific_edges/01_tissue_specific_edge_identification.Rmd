@@ -5,7 +5,7 @@ date: '2023-08-01'
 output: html_document
 ---
 
-```{r}
+```{r load-libraries}
 set.seed(2178)
 library(here)
 library(UpSetR)
@@ -13,11 +13,13 @@ library(ComplexHeatmap)
 library(tidyr)
 library(stringr)
 library(lintr)
+library(UpSetR)
+library(ComplexHeatmap)
 library(ggplot2)
 library(styler)
 library(dplyr)
 library(reshape2)
-proc.time()
+ptm <- proc.time()
 ```
 
 ```{r}
@@ -142,9 +144,11 @@ merged_df <- merged_df[, -33]
 merged_df[, -1] <- lapply(merged_df[, -1], function(x) ifelse(x > 2, 1, 0))
 
 # melt tissue-specific edges and grab only those that are tissue-specific
-tissue_specific <- melt(merged_df, id.vars = "edges",
-                        variable.name = "Tissue",
-                        value.name = "Tissue Specific")
+tissue_specific <- melt(merged_df,
+  id.vars = "edges",
+  variable.name = "Tissue",
+  value.name = "Tissue Specific"
+)
 tissue_specific <- tissue_specific[tissue_specific$`Tissue Specific` == 1, ]
 
 # split edges
@@ -176,6 +180,7 @@ subset_dfs <- lapply(names(condor_list), function(list_name) {
 tse_edges <- bind_rows(subset_dfs)
 
 # filter communities for communities known to contain SETBP1 for each tissue
+<<<<<<< HEAD
 setbp1_comms <- paste(setbp1_comm_number$tissue_type, setbp1_comm_number$com_value, sep = "_")# generate SETBP1 community vector label
 tse_edges$annotation <- paste(tse_edges$tissue_type, tse_edges$condor_memb, sep = "_")# generate annotation to filter tse edges for setbp1_comms with
 data <- tse_edges[tse_edges$annotation %in% setbp1_comms,]# filter for only setbp1 communities 
@@ -193,8 +198,23 @@ data_gene <- data[data$entity == "gene",] %>% na.omit(.) # filter for only genes
 data_gene <- data_gene[data_gene$name %in% setbp1_genes,]#filter for gene set 
 
 merged_data <- left_join(data_gene, mult_genes, by = c('name' = 'gene')) # add multiplicity to tse community data
+=======
+setbp1_comms <- paste(setbp1_comm_number$tissue_type, setbp1_comm_number$com_value, sep = "_") # generate SETBP1 community vector label
+tse_edges$annotation <- paste(tse_edges$tissue_type, tse_edges$condor_memb, sep = "_") # generate annotation to filter tse edges for setbp1_comms with
+data <- tse_edges[tse_edges$annotation %in% setbp1_comms, ] # filter for only setbp1 communities
+data <- data[data$name %in% setbp1_genes, ] # filter for known targets of SETBP1
+```
 
-affected_merged <- merged_data_gene[merged_data_gene$tissue_type %in% affected,] # filter for affected tissues
+```{r assign-mult-to-ts-setbp1-comm-edges}
+mult_genes <- multiplicity[!grepl("-", multiplicity$gene), ] # remove genes with alternate alleles aka a "-"
+mult_genes <- mult_genes %>% separate(edges, c("tf", "gene")) # grab multiplicity
+
+merged_data <- left_join(data, mult_genes, by = c("name" = "gene")) # add multiplicity to tse community data
+
+merged_data_gene <- merged_data[merged_data$entity == "gene", ] %>% na.omit(.) # filter for only genes
+>>>>>>> main
+
+affected_merged <- merged_data_gene[merged_data_gene$tissue_type %in% affected, ] # filter for affected tissues
 ```
 
 ```{r visualize-tse-in-setbp1-comm-mult}
@@ -206,13 +226,13 @@ png(
   filename = here("results/tissue_specific_edges/tse_tissues_plot.png"),
   width = 3000,
   height = 2000,
-res = 300
+  res = 300
 )
 ggplot(counts, aes(y = Freq, x = Var1)) +
-  geom_bar(stat = "identity", fill = "#2C1D6C") + 
+  geom_bar(stat = "identity", fill = "#2C1D6C") +
   theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
-  theme(axis.text.x = element_text(color = "black", angle = 45, vjust = 0.6)) + 
+  theme(axis.text.x = element_text(color = "black", angle = 45, vjust = 0.6)) +
   theme(axis.text.y = element_text(color = "black")) +
   theme(axis.text = element_text(face = "bold")) +
   theme(legend.title = element_text(face = "bold")) +
@@ -220,12 +240,14 @@ ggplot(counts, aes(y = Freq, x = Var1)) +
   theme(axis.title.y = element_text(face = "bold")) +
   theme(axis.title.x = element_text(face = "bold")) +
   labs(x = "GTEx Affected Tissues", y = "Number of SETBP1's Tissue-specific Edges \n in SETBP1 Communities") +
-  theme(title = element_text(face = "bold"),
-        plot.title = element_text(hjust = 0, size = 20),
-        axis.title.x = element_text(size = 16),
-        axis.title.y = element_text(size = 16),
-        axis.text.x = element_text(size = 16),
-        axis.text.y = element_text(size = 16))
+  theme(
+    title = element_text(face = "bold"),
+    plot.title = element_text(hjust = 0, size = 20),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16)
+  )
 dev.off()
 
 # multiplicity of tissue specific edges of SETBP1 in SEBTP1 communities
@@ -235,13 +257,13 @@ png(
   filename = here("results/tissue_specific_edges/mult_density_setbp1_tse_plot.png"),
   width = 3000,
   height = 2000,
-res = 300
+  res = 300
 )
 ggplot(counts, aes(y = Freq, x = Var1)) +
-  geom_bar(stat = "identity", fill = "#2C1D6C") + 
+  geom_bar(stat = "identity", fill = "#2C1D6C") +
   theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
-  theme(axis.text.x = element_text(color = "black", angle = 45, vjust = 0.6)) + 
+  theme(axis.text.x = element_text(color = "black", angle = 45, vjust = 0.6)) +
   theme(axis.text.y = element_text(color = "black")) +
   theme(axis.text = element_text(face = "bold")) +
   theme(legend.title = element_text(face = "bold")) +
@@ -249,12 +271,14 @@ ggplot(counts, aes(y = Freq, x = Var1)) +
   theme(axis.title.y = element_text(face = "bold")) +
   theme(axis.title.x = element_text(face = "bold")) +
   labs(x = "Multiplicity of SETBP1 Tissue-specific edges \n in SETBP1 Communities", y = "Density") +
-  theme(title = element_text(face = "bold"),
-        plot.title = element_text(hjust = 0, size = 20),
-        axis.title.x = element_text(size = 16),
-        axis.title.y = element_text(size = 16),
-        axis.text.x = element_text(size = 16),
-        axis.text.y = element_text(size = 16))
+  theme(
+    title = element_text(face = "bold"),
+    plot.title = element_text(hjust = 0, size = 20),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 16),
+    axis.text.y = element_text(size = 16)
+  )
 dev.off()
 ```
 
@@ -264,8 +288,8 @@ Code below for UpSet plot was adapted from vignette [here](https://jokergoo.gith
 ```{r uset-plot-overlapping-edges}
 # identifying quartiles for multiplcity
 summary(affected_merged$multiplicity)
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#   1.00   25.00   30.00   25.79   31.00   31.00 
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
+#   1.00   25.00   30.00   25.79   31.00   31.00
 
 # filtering to excude edges that have a multiplicity of less than or equal to Q1
 affected_merged <- affected_merged[affected_merged$multiplicity <= 25, ]
@@ -273,49 +297,16 @@ affected_merged <- affected_merged[affected_merged$multiplicity <= 25, ]
 # formatting data
 subset <- subset(affected_merged, select = c("name", "tissue_type")) # selecting columns of interest
 
-subset$present <- 1# adding a count for sets
+subset$present <- 1 # adding a count for sets
 subset <- pivot_wider(subset, names_from = name, values_from = present) # pivoting wider
-subset <- mutate_all(subset, ~replace_na(.,0)) #change NA to 0
-subset$tissue_type <- str_to_title(subset$tissue_type) %>% gsub("_", " ", .)#reformat tissue type
+subset <- mutate_all(subset, ~ replace_na(., 0)) # change NA to 0
+subset$tissue_type <- str_to_title(subset$tissue_type) %>% gsub("_", " ", .) # reformat tissue type
 row_names_data <- subset$tissue_type
-subset <- subset[,-1]
+subset <- subset[, -1]
 rownames(subset) <- row_names_data
-<<<<<<< HEAD
 
 m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
-t(m1) #view
-
-# plotting upset plot
-png(
-  filename = here("results/tissue_specific_edges/upset_plot.png"),
-  width = 3000,
-  height = 2000,
-res = 300
-)
-UpSet(m1, left_annotation = upset_left_annotation(m1))
-dev.off()
-
-=======
-
-m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
-t(m1) #view
-
-# plotting upset plot
-png(
-  filename = here("results/tissue_specific_edges/upset_plot.png"),
-  width = 3000,
-  height = 2000,
-res = 300
-)
-UpSet(m1, left_annotation = upset_left_annotation(m1))
-dev.off()
-
->>>>>>> main
-# making the combination matrix
-subset <- t(subset)
-
-m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
-t(m1) #view
+m1 #view
 
 # plotting upset plot
 png(

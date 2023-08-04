@@ -125,6 +125,22 @@ Heatmap(mat,
 dev.off()
 ```
 
+Variance is mean squared difference between each data point and the center of the distribution measured by the mean. More specifically, variance measures how far each number in the set is from the mean (average), and thus from every other number in the set.
+```{r calculate-row-wise-variance}
+library(matrixStats)
+variance <- rowVars(data)
+tf_names <- rownames(data)
+
+var_df <- data.frame(tf_names, variance)
+```
+
+```{r calculate-row-wise-variance}
+col_variance <- colVars(data)
+tissues <- colnames(data)
+
+col_var_df <- data.frame(tissues, col_variance)
+```
+
 
 ```{r processing-time}
 fptm <- proc.time() - ptm
