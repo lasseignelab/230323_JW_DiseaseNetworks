@@ -124,8 +124,7 @@ The containers have been made publicly available on Zenodo:
 This work was supported in part by the UAB Lasseigne Lab funds, UAB Pilot Center for Precision Animal Modeling (C-PAM)(1U54OD030167) and JW UAB Predoctoral Training Grant in Cell, Molecular, and Developmental Biology (CMDB T32)(5T32GM008111-35).
 
 ## Acknowledgements
-
-List project acknowledgements.
+The authors thank the Lasseigne Lab members Vishal Oza, Tabea Soelter, Emma Jones, and Victoria Flanary for their feedback throughout this study. In addition, we thank Vishal Oza for his previously published Jaccard Similarity analysis code we adapted and used for this project. We also thank the UAB Biological Data Science group (RRID:SCR_021766) for providing a script for helping to run containers on the UAB high-performance cluster (https://github.com/U-BDS/training_guides/blob/main/run_rstudio_singularity.sh).
 
 ## License
 
