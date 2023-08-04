@@ -232,7 +232,7 @@ png(
   height = 2000,
   res = 300
 )
-ggplot(counts, aes(y = Freq, x = Var1)) +
+plot <- ggplot(counts, aes(y = Freq, x = Var1)) +
   geom_bar(stat = "identity", fill = "#2C1D6C") +
   theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
@@ -280,6 +280,9 @@ rownames(subset) <- row_names_data
 
 m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
 t(m1) # view
+colnames(m1) <- c("Bone Marrow", "Brain", "Espohagus", "Stomach", "Heart", "Lung", "Bladder", "Blood", "Small Intestine", "Muscle", "Kidney") # add tissues
+
+# annotating tissues
 
 # plotting upset plot
 png(
@@ -288,23 +291,8 @@ png(
   height = 2000,
   res = 300
 )
-UpSet(m1, left_annotation = upset_left_annotation(m1))
-dev.off()
-
-# making the combination matrix
-subset <- t(subset)
-
-m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
-t(m1) # view
-
-# plotting upset plot
-png(
-  filename = here("results/tissue_specific_edges/flipped_upset_plot.png"),
-  width = 3000,
-  height = 2000,
-  res = 300
-)
-UpSet(m1, left_annotation = upset_left_annotation(m1))
+UpSet(m1, left_annotation = upset_left_annotation(m1, ylim = c(0, 30),
+                                                  gp = gpar(fill = "#2C1D6C")),comb_col = "#2C1D6C", bg_pt_col = "#E2D7DB", bg_col = "#EEE5E8")
 dev.off()
 ```
 
