@@ -111,7 +111,7 @@ elbow_df <- data.frame(
 ggplot(elbow_df, aes(x = k, y = tot_withinss)) +
   geom_line() + geom_point()+
   scale_x_continuous(breaks = 1:10)
-
+ggsave(here("results/SETBP1_Expression/plots/elbowplot.png"))
 
 # pulling first 4 columns to wrangle setbp1 (4th row) to use as annotation
 tempdf <- t(as.matrix(tissues_med_log[1:4, 2:length(tissues_med_log)]))
@@ -125,7 +125,7 @@ png(
   width = 25, height = 30, units = "cm", res = 300 # height = 50 ensures legible y-axis
 )
 set.seed(1)
-ht_opt(heatmap_column_names_gp = gpar(fontface = "bold"))
+
 top_ha <- ComplexHeatmap::HeatmapAnnotation(
   SETBP1 = tempdf[, 4],
   name = "SETBP1",
@@ -144,7 +144,7 @@ hm_sb1_tar <- ComplexHeatmap::Heatmap(
   heatmap_legend_param = list(title = "Scaled TPM"),
   top_annotation = top_ha
 )
-
+ht_opt(heatmap_column_names_gp = gpar(fontface = "bold"))
 hm_sb1_tar
 dev.off()
 
@@ -191,7 +191,33 @@ p <- cluster_fea %>%
     plot.title = element_text(size = 14, hjust = 0.5)
   )
 p
-ggsave(here("results/SETBP1_Expression/plots/fea_3clusters_bubbleplot.png"), width = 8, height = 9, bg = "white")
+ggsave(
+  here("results/SETBP1_Expression/plots/fea_3clusters_bubbleplot.png"),
+  width = 8, height = 9, bg = "white")
+
+# correlations
+library(stats)
+
+setbp1 <- t(as.matrix(tissues_med_log[4, 2:length(tissues_med_log)]))
+targets <- t(as.matrix(tissues_med_log[-4, 2:length(tissues_med_log)]))
+
+cor_res <- list()
+
+for(i in seq_along(targets)){
+  res <- cor.test(setbp1, targets[,i])
+  cor_res[[colnames(targets)[i]]] <- res$estimate
+}
+
+t <- t(as.data.frame(cor_res))
+sp1_target_cor <- t %>%
+  as.data.frame() %>% rownames_to_column(., var = "target") %>%
+  inner_join(., setbp1_targets, by = "target")
+
+sb1_cor_cluster <- left_join(clu_df, sp1_target_cor,
+                             by = c("GeneID" = "name")) %>%
+  select(GeneID, Cluster, SETBP1_Cor = cor, description)
+write.csv(sb1_cor_cluster, here(
+  "results/SETBP1_Expression/setbp1_target_cor_clust.csv"))
 
 # end timer
 fptm <- proc.time() - ptm
