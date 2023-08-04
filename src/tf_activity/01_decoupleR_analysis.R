@@ -5,7 +5,7 @@ set.seed(2178)
 library(dplyr)
 library(decoupleR)
 library(CoSIA)
-source("/data/user/jbarham3/230323_JW_DiseaseNetworks/src/functions.R")
+#source("/data/user/jbarham3/230323_JW_DiseaseNetworks/src/functions.R")
 
 # Fetch command line arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -17,6 +17,13 @@ min_n <- as.numeric(args[3])
 print(gtex_file)
 print(prior_net)
 print(min_n)
+
+#user input pathway to setwd
+setwd(args[4])
+print(getwd())
+
+#load in functions
+source("./src/functions.R")
 
 #extracting tissue name
 tissue <- basename(gtex_file)
@@ -78,6 +85,7 @@ print("calculating tf activity")
 acts <- tf_activity(mat, net, min_n)
 
 # Specify output path
-output_path <- paste("/data/user/jbarham3/230323_JW_DiseaseNetworks/results/decoupleR/", tissue, "_acts.RData", sep = "") 
+if (!dir.exists("./results/decoupleR/")) dir.create("./results/decoupleR/") #check if results/PANDA exists, create if not
+output_path <- paste(args[4], "/results/decoupleR/", tissue, "_acts.RData", sep = "") 
 # Save the output
 save(acts, file = output_path)

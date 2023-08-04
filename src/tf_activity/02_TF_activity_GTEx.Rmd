@@ -30,7 +30,8 @@ setbp1_genes <- append(setbp1_genes, "Setbp1")
 setbp1_genes <- toupper(setbp1_genes)
 ```
 
-```{r load-CollecTRI-prior-mouse}
+```{r load-CollecTRI-prior}
+# filepath to CollecTRI prior
 collectri <- read_csv(here("data/human_prior_tri.csv"))
 ```
 
@@ -132,15 +133,16 @@ variance <- rowVars(data)
 tf_names <- rownames(data)
 
 var_df <- data.frame(tf_names, variance)
+
+summary(var_df$variance)
 ```
 
-```{r calculate-row-wise-variance}
+```{r calculate-col-wise-variance}
 col_variance <- colVars(data)
 tissues <- colnames(data)
 
 col_var_df <- data.frame(tissues, col_variance)
 ```
-
 
 ```{r processing-time}
 fptm <- proc.time() - ptm

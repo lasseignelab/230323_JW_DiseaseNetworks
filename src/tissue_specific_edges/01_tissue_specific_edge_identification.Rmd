@@ -4,6 +4,12 @@ author: "Jordan Whitlock"
 date: '2023-08-01'
 output: html_document
 ---
+Purpose: Identify Tissue-specific edges in SEP1 communities 
+1. Combine all edges for all tissues into a single dataframe
+2. Calculate specificity and multiplcity for edges of SETBP1
+3. Define tissue-specific edges
+4. Subset the SETBP1 tissue-specific edges for those in SETP1 communities (identified with condor)
+5. Find the overlap of those edges in affected tissues that have a multiplicity value <= Q1
 
 ```{r load-libraries}
 set.seed(2178)
@@ -115,11 +121,7 @@ med_iqr_df <- data.frame(edges = merged_df$edges)
 med_iqr_df$median_all <- apply(merged_df[, -1], 1, median) # median for each row
 med_iqr_df$IQR_all <- apply(merged_df[, -1], 1, IQR) # IQR for each row
 
-<<<<<<< HEAD
-save(med_iqr, file = here("results/tissue_specific_edges/med_iqr.Rdata"))
-=======
 save(med_iqr_df, file = here("results/tissue_specific_edges/med_iqr_df.Rdata"))
->>>>>>> main
 
 # compare edge weights across tissues using Sonawane et al Equation 2 to calculate specificity scores
 merged_df[, -1] <- t(apply(merged_df[, -1], 1, function(x) (x - med_iqr_df$median_all) / med_iqr_df$IQR_all)) # transpose because apply returns rows as tissues and columns as edges
@@ -180,7 +182,6 @@ subset_dfs <- lapply(names(condor_list), function(list_name) {
 tse_edges <- bind_rows(subset_dfs)
 
 # filter communities for communities known to contain SETBP1 for each tissue
-<<<<<<< HEAD
 setbp1_comms <- paste(setbp1_comm_number$tissue_type, setbp1_comm_number$com_value, sep = "_")# generate SETBP1 community vector label
 tse_edges$annotation <- paste(tse_edges$tissue_type, tse_edges$condor_memb, sep = "_")# generate annotation to filter tse edges for setbp1_comms with
 data <- tse_edges[tse_edges$annotation %in% setbp1_comms,]# filter for only setbp1 communities 
@@ -198,7 +199,7 @@ data_gene <- data[data$entity == "gene",] %>% na.omit(.) # filter for only genes
 data_gene <- data_gene[data_gene$name %in% setbp1_genes,]#filter for gene set 
 
 merged_data <- left_join(data_gene, mult_genes, by = c('name' = 'gene')) # add multiplicity to tse community data
-=======
+
 setbp1_comms <- paste(setbp1_comm_number$tissue_type, setbp1_comm_number$com_value, sep = "_") # generate SETBP1 community vector label
 tse_edges$annotation <- paste(tse_edges$tissue_type, tse_edges$condor_memb, sep = "_") # generate annotation to filter tse edges for setbp1_comms with
 data <- tse_edges[tse_edges$annotation %in% setbp1_comms, ] # filter for only setbp1 communities
@@ -212,7 +213,6 @@ mult_genes <- mult_genes %>% separate(edges, c("tf", "gene")) # grab multiplicit
 merged_data <- left_join(data, mult_genes, by = c("name" = "gene")) # add multiplicity to tse community data
 
 merged_data_gene <- merged_data[merged_data$entity == "gene", ] %>% na.omit(.) # filter for only genes
->>>>>>> main
 
 affected_merged <- merged_data_gene[merged_data_gene$tissue_type %in% affected, ] # filter for affected tissues
 ```
@@ -222,13 +222,17 @@ affected_merged <- merged_data_gene[merged_data_gene$tissue_type %in% affected, 
 counts <- as.data.frame(table(affected_merged$tissue_type))
 counts$Var1 <- str_to_title(counts$Var1) %>% gsub("_", " ", .)
 
+# reorder and plot
 png(
   filename = here("results/tissue_specific_edges/tse_tissues_plot.png"),
   width = 3000,
   height = 2000,
   res = 300
 )
-ggplot(counts, aes(y = Freq, x = Var1)) +
+counts %>% 
+  arrange(Freq) %>%
+  mutate(name = factor(Var1, levels = Var1)) %>%
+  ggplot(aes(y = Freq, x = name)) +
   geom_bar(stat = "identity", fill = "#2C1D6C") +
   theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
@@ -247,7 +251,8 @@ ggplot(counts, aes(y = Freq, x = Var1)) +
     axis.title.y = element_text(size = 16),
     axis.text.x = element_text(size = 16),
     axis.text.y = element_text(size = 16)
-  )
+  ) +
+  scale_y_continuous(breaks = c(2,4,6,8,10))
 dev.off()
 
 # multiplicity of tissue specific edges of SETBP1 in SEBTP1 communities
@@ -259,7 +264,7 @@ png(
   height = 2000,
   res = 300
 )
-ggplot(counts, aes(y = Freq, x = Var1)) +
+plot <- ggplot(counts, aes(y = Freq, x = Var1)) +
   geom_bar(stat = "identity", fill = "#2C1D6C") +
   theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
@@ -306,16 +311,21 @@ subset <- subset[, -1]
 rownames(subset) <- row_names_data
 
 m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
-m1 #view
+t(m1) # view
+colnames(m1) <- c("Bone Marrow", "Brain", "Espohagus", "Stomach", "Heart", "Lung", "Bladder", "Blood", "Small Intestine", "Muscle", "Kidney") # add tissues
+
+# annotating tissues
 
 # plotting upset plot
 png(
   filename = here("results/tissue_specific_edges/upset_plot.png"),
   width = 3000,
   height = 2000,
-res = 300
+  res = 300
+
 )
-UpSet(m1, left_annotation = upset_left_annotation(m1))
+UpSet(m1, left_annotation = upset_left_annotation(m1, ylim = c(0, 30),
+                                                  gp = gpar(fill = "#2C1D6C")),comb_col = "#2C1D6C", bg_pt_col = "#E2D7DB", bg_col = "#EEE5E8")
 dev.off()
 ```
 
@@ -333,3 +343,31 @@ fptm[3] / 60
 ```{r}
 sessionInfo()
 ```
+R version 4.1.3 (2022-03-10)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.6 LTS
+
+Matrix products: default
+BLAS/LAPACK: /usr/lib/x86_64-linux-gnu/openblas-pthread/libopenblasp-r0.3.8.so
+
+locale:
+[1] C
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] reshape2_1.4.4        dplyr_1.1.0           styler_1.9.0          ggplot2_3.4.1         ComplexHeatmap_2.10.0 UpSetR_1.4.0          lintr_3.0.2          
+ [8] stringr_1.5.0         tidyr_1.3.0           here_1.0.1            pandaR_1.26.0         Biobase_2.54.0        BiocGenerics_0.40.0  
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_1.0.10         lattice_0.20-45     circlize_0.4.15     png_0.1-8           ps_1.7.2            rprojroot_2.0.3     digest_0.6.31      
+ [8] foreach_1.5.2       utf8_1.2.3          R6_2.5.1            plyr_1.8.8          stats4_4.1.3        pillar_1.8.1        GlobalOptions_0.1.2
+[15] rlang_1.0.6         lazyeval_0.2.2      rstudioapi_0.14     callr_3.7.3         hexbin_1.28.2       R.utils_2.12.2      R.oo_1.25.0        
+[22] S4Vectors_0.32.4    GetoptLong_1.0.5    RUnit_0.4.32        desc_1.4.2          igraph_1.4.1        munsell_0.5.0       compiler_4.1.3     
+[29] xfun_0.37           pkgconfig_2.0.3     shape_1.4.6         tidyselect_1.2.0    tibble_3.1.8        gridExtra_2.3       IRanges_2.28.0     
+[36] codetools_0.2-18    matrixStats_0.63.0  reshape_0.8.9       fansi_1.0.4         crayon_1.5.2        withr_2.5.0         R.methodsS3_1.8.2  
+[43] gtable_0.3.1        lifecycle_1.0.3     magrittr_2.0.3      scales_1.2.1        cli_3.6.0           stringi_1.7.12      remotes_2.4.2      
+[50] rex_1.2.1           doParallel_1.0.17   xml2_1.3.3          generics_0.1.3      vctrs_0.5.2         cyclocomp_1.1.0     rjson_0.2.21       
+[57] RColorBrewer_1.1-3  iterators_1.0.14    tools_4.1.3         R.cache_0.16.0      glue_1.6.2          purrr_1.0.1         processx_3.8.0     
+[64] parallel_4.1.3      clue_0.3-64         colorspace_2.1-0    cluster_2.1.2       knitr_1.42         
