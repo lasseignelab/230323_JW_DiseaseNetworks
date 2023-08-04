@@ -181,12 +181,14 @@ setbp1_comm_number <- read.csv(here("results/condor/communitynumber_setbp1_TF.cs
 
 ```{r comm-members-tse-edges}
 # grab nodes interacting with SETBP1 from tse
-tse_genes <- as.vector(unique(tissue_specific$gene))
+tissue_specific$tiss_name <- paste0(tissue_specific$gene, "_", tissue_specific$Tissue) # add tissue to gene name for mapping
+tse_genes <- as.vector(unique(tissue_specific$tiss_name))
 
 # Subset each dataframe for tse genes in the list and annotate with the list name
 subset_dfs <- lapply(names(condor_list), function(list_name) {
   df <- condor_list[[list_name]]
-  subset_df <- df[df$name %in% tse_genes, ]
+  df$tiss_name <- paste0(df$name, "_", list_name)
+  subset_df <- df[df$tiss_name %in% tse_genes, ]
   subset_df$tissue_type <- list_name
   return(subset_df)
 })
@@ -225,14 +227,16 @@ affected_merged$tissue_type <- str_to_title(affected_merged$tissue) %>% gsub("_"
 # assign multiplicity groupings
 affected_merged <- affected_merged %>%
   mutate(multiplicity_group = case_when(
-    multiplicity == 1 ~ "1",
-    multiplicity == 2 ~ "2",
-    multiplicity == 3 ~ "3",
-    multiplicity == 4 ~ "4",
-    multiplicity >= 5 ~ "5+"
+    multiplicity == 5 ~ "5",
+    multiplicity == 6 ~ "6",
+    multiplicity == 12 ~ "12",
+    multiplicity == 13 ~ "13",
+    multiplicity >= 15 ~ "15+"
   ))
 
 # reorder and plot
+affected_merged$multiplicity_group <- factor(affected_merged$multiplicity_group, levels = c("5", "6", "12", "13", "15+"))
+
 png(
   filename = here("results/tissue_specific_edges/tse_tissues_plot.png"),
   width = 3000,
@@ -244,9 +248,9 @@ ggplot(affected_merged, aes(x = tissue_type, fill = multiplicity_group)) +
   theme_bw() +
   labs(x = "Tissue Type", y = "Frequency") +
   scale_fill_manual(
-    values = c("#2C1D6C", "#533180", "#A468A9", "#D3B1C5"),
-    labels = c("1", "2", "4", "5+"), # note: there was no 3 in this data
-    name = "Multiplicity Group"
+  values = c("#D3B1C5", "#C06CB4", "#A468A9", "#533180", "#2C1D6C"),
+  labels = c("5", "6", "12", "13", "15+"), # note: there was no 3 in this data
+  name = "Multiplicity"
   ) +
   theme(text = element_text(family = "Helvetica")) +
   theme(axis.text.x = element_text(color = "black", angle = 45, vjust = 0.6)) +
@@ -277,11 +281,11 @@ Code below for UpSet plot was adapted from vignette [here](https://jokergoo.gith
 ```{r uset-plot-overlapping-edges}
 # identifying quartiles for multiplcity
 summary(affected_merged$multiplicity)
-# Min. 1st Qu.  Median    Mean 3rd Qu.    Max.
-#   1.00   25.00   30.00   25.79   31.00   31.00
+#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#   5.00   30.00   31.00   29.02   31.00   31.00 
 
-# filtering to excude edges that have a multiplicity of less than or equal to Q1
-affected_merged <- affected_merged[affected_merged$multiplicity <= 25, ]
+# filtering to excude edges that have a multiplicity of less than Q1
+affected_merged <- affected_merged[affected_merged$multiplicity < 30, ]
 
 # formatting data
 subset <- subset(affected_merged, select = c("name", "tissue_type")) # selecting columns of interest
@@ -296,21 +300,13 @@ rownames(subset) <- row_names_data
 
 m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
 t(m1) # view
-colnames(m1) <- c(
-  "Bone Marrow",
-  "Brain",
-  "Espohagus",
-  "Stomach",
-  "Heart",
-  "Lung",
-  "Bladder",
-  "Blood",
-  "Small Intestine",
-  "Muscle",
-  "Kidney"
-) # add tissues
-
-# annotating tissues
+colnames(m1) <- c( "Esophagus",
+                   "Muscle",
+                   "Small Intestine",
+                   "Kidney",
+                   "Blood and Brain",
+                   "Bone Marrow"
+) # annotating tissues
 
 # plotting upset plot
 png(
@@ -321,7 +317,7 @@ png(
 )
 UpSet(m1,
   left_annotation = upset_left_annotation(m1,
-    ylim = c(0, 30),
+    ylim = c(0, 5),
     gp = gpar(fill = "#2C1D6C")
   ),
   comb_col = "#2C1D6C",
