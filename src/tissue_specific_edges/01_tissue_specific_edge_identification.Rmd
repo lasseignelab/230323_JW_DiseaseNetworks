@@ -195,13 +195,17 @@ affected_merged <- merged_data_gene[merged_data_gene$tissue_type %in% affected, 
 counts <- as.data.frame(table(affected_merged$tissue_type))
 counts$Var1 <- str_to_title(counts$Var1) %>% gsub("_", " ", .)
 
+# reorder and plot
 png(
   filename = here("results/tissue_specific_edges/tse_tissues_plot.png"),
   width = 3000,
   height = 2000,
   res = 300
 )
-ggplot(counts, aes(y = Freq, x = Var1)) +
+counts %>% 
+  arrange(Freq) %>%
+  mutate(name = factor(Var1, levels = Var1)) %>%
+  ggplot(aes(y = Freq, x = name)) +
   geom_bar(stat = "identity", fill = "#2C1D6C") +
   theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
@@ -220,7 +224,8 @@ ggplot(counts, aes(y = Freq, x = Var1)) +
     axis.title.y = element_text(size = 16),
     axis.text.x = element_text(size = 16),
     axis.text.y = element_text(size = 16)
-  )
+  ) +
+  scale_y_continuous(breaks = c(2,4,6,8,10))
 dev.off()
 
 # multiplicity of tissue specific edges of SETBP1 in SEBTP1 communities
