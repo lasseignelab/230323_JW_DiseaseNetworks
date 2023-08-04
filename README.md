@@ -13,6 +13,9 @@ The University of Alabama at Birmingham (UAB), Heersink School of
 Medicine, Department of Cell, Developmental and Integrative Biology
 (CDIB)
 
+## Citation
+> placeholder here
+
 [The Lasseigne Lab](https://www.lasseigne.org/)
 
 <img src="https://www.lasseigne.org/img/main/lablogo.png" width="90" height="90">
@@ -28,6 +31,10 @@ Genotype-tissue expression project (GTEx). This project is hypothesis
 generating, therefore emphasizing the role of different contexts, such
 as tissues, and the role they may play in disease when a variant is
 introduced.
+
+## Data Availability
+
+placeholder here for zenodo buttons
 
 ## Overview
 ![Overview_Fig (4)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/3e13cab2-9db5-4923-be0a-372a1f4e45fa)
