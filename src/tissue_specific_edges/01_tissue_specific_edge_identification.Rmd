@@ -14,8 +14,6 @@ Purpose: Identify Tissue-specific edges in SEP1 communities
 ```{r load-libraries}
 set.seed(2178)
 library(here)
-library(UpSetR)
-library(ComplexHeatmap)
 library(tidyr)
 library(stringr)
 library(lintr)
@@ -67,7 +65,10 @@ for (i in files) {
   load(i)
   # extracting-networks
   regNet <- pandaResults@regNet
-  regNet <- reshape2::melt(regNet, varnames = c("TF", "gene"), value.name = "edge_weight")
+  regNet <- reshape2::melt(regNet,
+    varnames = c("TF", "gene"),
+    value.name = "edge_weight"
+  )
 
   # filter for TF SETBP1
   regNet <- regNet[regNet$TF == "SETBP1", ]
@@ -85,7 +86,9 @@ for (i in files) {
 
 names(regNet_edges) <- names
 
-save(regNet_edges, file = here("results/tissue_specific_edges/edges_list_object.Rdata"))
+save(regNet_edges,
+  file = here("results/tissue_specific_edges/edges_list_object.Rdata")
+)
 ```
 
 # combine all regNets for all tissues 
@@ -103,16 +106,19 @@ merged_df <- merged_df %>%
 names(merged_df)[-1] <- names(regNet_edges)
 
 # save the object
-save(merged_df, file = here("results/tissue_specific_edges/merged_edges_object.Rdata"))
+save(merged_df,
+  file = here("results/tissue_specific_edges/merged_edges_object.Rdata")
+)
 ```
 
 We wanted to identify tissue-specific edges as previously defined in [Sonawane et al Cell Reports 2017](https://www.cell.com/cell-reports/fulltext/S2211-1247(17)31418-3#secsectitle0080); formulas 1, 2 & 3 to calculate tissue-specific-edges
 ```{r}
 # ln(e^x + 1) transform edge weights to address negatives
 merged_df <- merged_df %>% mutate(across(-1, ~ log(exp(.) + 1)))
-save(merged_df, file = here("results/tissue_specific_edges/merged_df_transform_weights.Rdata"))
 
-save(merged_df, file = here("results/tissue_specific_edges/merged_edges_transformed.Rdata"))
+save(merged_df,
+  file = here("results/tissue_specific_edges/merged_edges_transformed.Rdata")
+)
 
 # make df for storing median and iqr
 med_iqr_df <- data.frame(edges = merged_df$edges)
@@ -124,7 +130,10 @@ med_iqr_df$IQR_all <- apply(merged_df[, -1], 1, IQR) # IQR for each row
 save(med_iqr_df, file = here("results/tissue_specific_edges/med_iqr_df.Rdata"))
 
 # compare edge weights across tissues using Sonawane et al Equation 2 to calculate specificity scores
-merged_df[, -1] <- t(apply(merged_df[, -1], 1, function(x) (x - med_iqr_df$median_all) / med_iqr_df$IQR_all)) # transpose because apply returns rows as tissues and columns as edges
+merged_df[, -1] <- t(apply(
+  merged_df[, -1], 1,
+  function(x) (x - med_iqr_df$median_all) / med_iqr_df$IQR_all
+)) # transpose because apply returns rows as tissues and columns as edges
 
 # calculate multiplicity
 merged_df$multiplicity <- apply(merged_df[-1], 1, function(x) sum(x > 2))
@@ -132,12 +141,16 @@ hist(merged_df$multiplicity) # visualize
 
 multiplicity <- merged_df[, c(1, 33)]
 
-save(merged_df, file = here("results/tissue_specific_edges/specificity_multiplicity.Rdata"))
+save(merged_df,
+  file = here("results/tissue_specific_edges/specificity_multiplicity.Rdata")
+)
 
 multiplicity <- multiplicity %>%
   separate(edges, into = c("TF", "gene"), sep = "_", remove = FALSE) # split edges
 
-save(multiplicity, file = here("results/tissue_specific_edges/multiplicity.Rdata"))
+save(multiplicity,
+  file = here("results/tissue_specific_edges/multiplicity.Rdata")
+)
 ```
 
 # define tissue specific edges as those with a specificity scores > 2
@@ -157,7 +170,7 @@ tissue_specific <- tissue_specific[tissue_specific$`Tissue Specific` == 1, ]
 tissue_specific <- tissue_specific %>%
   separate(edges, into = c("TF", "gene"), sep = "_", remove = FALSE)
 
-save(tissue_specific, file = here("results/ts_edges/tissue_specific_edges.Rdata"))
+save(tissue_specific, file = here("results/tissue_specific_edges/tissue_specific_edges.Rdata"))
 ```
 
 ## Cross reference tissue-specific edges with the CONDOR communitites for SETBP1
@@ -182,26 +195,14 @@ subset_dfs <- lapply(names(condor_list), function(list_name) {
 tse_edges <- bind_rows(subset_dfs)
 
 # filter communities for communities known to contain SETBP1 for each tissue
-setbp1_comms <- paste(setbp1_comm_number$tissue_type, setbp1_comm_number$com_value, sep = "_")# generate SETBP1 community vector label
-tse_edges$annotation <- paste(tse_edges$tissue_type, tse_edges$condor_memb, sep = "_")# generate annotation to filter tse edges for setbp1_comms with
-data <- tse_edges[tse_edges$annotation %in% setbp1_comms,]# filter for only setbp1 communities 
-data <- data[data$name %in% setbp1_genes,]# filter for known targets of SETBP1
-data <- data[!grepl("-", data$name),] # remove genes with alternate alleles aka a "-"
-```
-
-```{r assign-mult-to-ts-setbp1-comm-edges}
-mult_genes <- multiplicity[!grepl("-", multiplicity$gene),] # remove genes with alternate alleles aka a "-"
-mult_genes <- mult_genes %>% separate(edges, c("tf", "gene"))#grab multiplicity
-mult_genes <- mult_genes[mult_genes$gene %in% setbp1_genes,]#filter for gene set 
-
-
-data_gene <- data[data$entity == "gene",] %>% na.omit(.) # filter for only genes
-data_gene <- data_gene[data_gene$name %in% setbp1_genes,]#filter for gene set 
-
-merged_data <- left_join(data_gene, mult_genes, by = c('name' = 'gene')) # add multiplicity to tse community data
-
-setbp1_comms <- paste(setbp1_comm_number$tissue_type, setbp1_comm_number$com_value, sep = "_") # generate SETBP1 community vector label
-tse_edges$annotation <- paste(tse_edges$tissue_type, tse_edges$condor_memb, sep = "_") # generate annotation to filter tse edges for setbp1_comms with
+setbp1_comms <- paste(setbp1_comm_number$tissue_type,
+  setbp1_comm_number$com_value,
+  sep = "_"
+) # generate SETBP1 community vector label
+tse_edges$annotation <- paste(tse_edges$tissue_type,
+  tse_edges$condor_memb,
+  sep = "_"
+) # generate annotation to filter tse edges for setbp1_comms with
 data <- tse_edges[tse_edges$annotation %in% setbp1_comms, ] # filter for only setbp1 communities
 data <- data[data$name %in% setbp1_genes, ] # filter for known targets of SETBP1
 ```
@@ -219,8 +220,17 @@ affected_merged <- merged_data_gene[merged_data_gene$tissue_type %in% affected, 
 
 ```{r visualize-tse-in-setbp1-comm-mult}
 # number of tse per tissue
-counts <- as.data.frame(table(affected_merged$tissue_type))
-counts$Var1 <- str_to_title(counts$Var1) %>% gsub("_", " ", .)
+affected_merged$tissue_type <- str_to_title(affected_merged$tissue) %>% gsub("_", " ", .)
+
+# assign multiplicity groupings
+affected_merged <- affected_merged %>%
+  mutate(multiplicity_group = case_when(
+    multiplicity == 1 ~ "1",
+    multiplicity == 2 ~ "2",
+    multiplicity == 3 ~ "3",
+    multiplicity == 4 ~ "4",
+    multiplicity >= 5 ~ "5+"
+  ))
 
 # reorder and plot
 png(
@@ -229,44 +239,15 @@ png(
   height = 2000,
   res = 300
 )
-counts %>% 
-  arrange(Freq) %>%
-  mutate(name = factor(Var1, levels = Var1)) %>%
-  ggplot(aes(y = Freq, x = name)) +
-  geom_bar(stat = "identity", fill = "#2C1D6C") +
+ggplot(affected_merged, aes(x = tissue_type, fill = multiplicity_group)) +
+  geom_bar(position = "stack") +
   theme_bw() +
-  theme(text = element_text(family = "Helvetica")) +
-  theme(axis.text.x = element_text(color = "black", angle = 45, vjust = 0.6)) +
-  theme(axis.text.y = element_text(color = "black")) +
-  theme(axis.text = element_text(face = "bold")) +
-  theme(legend.title = element_text(face = "bold")) +
-  theme(legend.text = element_text(face = "bold")) +
-  theme(axis.title.y = element_text(face = "bold")) +
-  theme(axis.title.x = element_text(face = "bold")) +
-  labs(x = "GTEx Affected Tissues", y = "Number of SETBP1's Tissue-specific Edges \n in SETBP1 Communities") +
-  theme(
-    title = element_text(face = "bold"),
-    plot.title = element_text(hjust = 0, size = 20),
-    axis.title.x = element_text(size = 16),
-    axis.title.y = element_text(size = 16),
-    axis.text.x = element_text(size = 16),
-    axis.text.y = element_text(size = 16)
+  labs(x = "Tissue Type", y = "Frequency") +
+  scale_fill_manual(
+    values = c("#2C1D6C", "#533180", "#A468A9", "#D3B1C5"),
+    labels = c("1", "2", "4", "5+"), # note: there was no 3 in this data
+    name = "Multiplicity Group"
   ) +
-  scale_y_continuous(breaks = c(2,4,6,8,10))
-dev.off()
-
-# multiplicity of tissue specific edges of SETBP1 in SEBTP1 communities
-counts <- as.data.frame(table(affected_merged$multiplicity))
-
-png(
-  filename = here("results/tissue_specific_edges/mult_density_setbp1_tse_plot.png"),
-  width = 3000,
-  height = 2000,
-  res = 300
-)
-plot <- ggplot(counts, aes(y = Freq, x = Var1)) +
-  geom_bar(stat = "identity", fill = "#2C1D6C") +
-  theme_bw() +
   theme(text = element_text(family = "Helvetica")) +
   theme(axis.text.x = element_text(color = "black", angle = 45, vjust = 0.6)) +
   theme(axis.text.y = element_text(color = "black")) +
@@ -275,7 +256,10 @@ plot <- ggplot(counts, aes(y = Freq, x = Var1)) +
   theme(legend.text = element_text(face = "bold")) +
   theme(axis.title.y = element_text(face = "bold")) +
   theme(axis.title.x = element_text(face = "bold")) +
-  labs(x = "Multiplicity of SETBP1 Tissue-specific edges \n in SETBP1 Communities", y = "Density") +
+  labs(
+    x = "GTEx Affected Tissues",
+    y = "Number of SETBP1's Tissue-specific Edges \n in SETBP1 Communities"
+  ) +
   theme(
     title = element_text(face = "bold"),
     plot.title = element_text(hjust = 0, size = 20),
@@ -312,7 +296,19 @@ rownames(subset) <- row_names_data
 
 m1 <- make_comb_mat(subset, mode = "distinct") # distinct mode: 1 means in that set and 0 means not in that set, then 1 1 0
 t(m1) # view
-colnames(m1) <- c("Bone Marrow", "Brain", "Espohagus", "Stomach", "Heart", "Lung", "Bladder", "Blood", "Small Intestine", "Muscle", "Kidney") # add tissues
+colnames(m1) <- c(
+  "Bone Marrow",
+  "Brain",
+  "Espohagus",
+  "Stomach",
+  "Heart",
+  "Lung",
+  "Bladder",
+  "Blood",
+  "Small Intestine",
+  "Muscle",
+  "Kidney"
+) # add tissues
 
 # annotating tissues
 
@@ -322,10 +318,16 @@ png(
   width = 3000,
   height = 2000,
   res = 300
-
 )
-UpSet(m1, left_annotation = upset_left_annotation(m1, ylim = c(0, 30),
-                                                  gp = gpar(fill = "#2C1D6C")),comb_col = "#2C1D6C", bg_pt_col = "#E2D7DB", bg_col = "#EEE5E8")
+UpSet(m1,
+  left_annotation = upset_left_annotation(m1,
+    ylim = c(0, 30),
+    gp = gpar(fill = "#2C1D6C")
+  ),
+  comb_col = "#2C1D6C",
+  bg_pt_col = "#E2D7DB",
+  bg_col = "#EEE5E8"
+)
 dev.off()
 ```
 
@@ -339,6 +341,8 @@ style_file(here("src/tissue_specific_edges/01_tissue_specific_edge_identificatio
 fptm <- proc.time() - ptm
 fptm[3] / 60
 ```
+elapsed 
+79.43523 
 
 ```{r}
 sessionInfo()
@@ -370,4 +374,4 @@ loaded via a namespace (and not attached):
 [43] gtable_0.3.1        lifecycle_1.0.3     magrittr_2.0.3      scales_1.2.1        cli_3.6.0           stringi_1.7.12      remotes_2.4.2      
 [50] rex_1.2.1           doParallel_1.0.17   xml2_1.3.3          generics_0.1.3      vctrs_0.5.2         cyclocomp_1.1.0     rjson_0.2.21       
 [57] RColorBrewer_1.1-3  iterators_1.0.14    tools_4.1.3         R.cache_0.16.0      glue_1.6.2          purrr_1.0.1         processx_3.8.0     
-[64] parallel_4.1.3      clue_0.3-64         colorspace_2.1-0    cluster_2.1.2       knitr_1.42         
+[64] parallel_4.1.3      clue_0.3-64         colorspace_2.1-0    cluster_2.1.2       knitr_1.42              
