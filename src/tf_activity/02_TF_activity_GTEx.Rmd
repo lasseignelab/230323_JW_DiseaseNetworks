@@ -76,6 +76,9 @@ data <- summarize_acts %>%
   column_to_rownames("source")
 
 data <- as.matrix(data)
+
+save(data, file = here("results/tf_activity/data.Rdata"))
+write.csv(data, file = here("results/tf_activity/tf_activity_scores.csv"))
 ```
 
 ```{r filter-for-geneset}
