@@ -28,7 +28,7 @@ server <- function(input, output) {
     selected_tfs <- unlist(strsplit(selected_tfs, "\\s*,\\s*"))
     
     # Subset the data based on selected tfs
-    selected_data <- as.data.frame(data[rownames(data) %in% selected_tfs, ])
+    selected_data <- subset(data, rownames(data) %in% selected_tfs)
     
     # cleaning up names for plotting
     colnames(selected_data) <- gsub("_", " ", colnames(selected_data))
@@ -41,7 +41,7 @@ server <- function(input, output) {
     pheatmap(
       mat,
       cluster_rows = FALSE,
-      cluster_columns = FALSE,
+      cluster_cols = FALSE,
       show_row_dend = FALSE,
       show_column_dend = FALSE,
       row_names_gp = gpar(fontface = "bold", fontfamily = "Helvetica"),
