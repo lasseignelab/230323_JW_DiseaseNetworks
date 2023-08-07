@@ -2,7 +2,7 @@ README
 ================
 2023-08-02
 
-# The Landscape of *SETBP1* tissue-specific gene expression and regulation across human tissues
+# The landscape of *SETBP1* gene expression and transcription factor activity across human tissues
 
 ## Authors
 
@@ -29,15 +29,15 @@ of the tissue-specific expression and regulation of transcription factor
 (TF) *SETBP1* across 31 non-diseased human tissues part of the
 Genotype-tissue expression project (GTEx). This project is hypothesis
 generating, therefore emphasizing the role of different contexts, such
-as tissues, and the role they may play in disease when a variant is
+as tissues and the role they may play in disease when a variant is
 introduced.
 
 ## Data Availability
 
-placeholder here for zenodo buttons
+placeholder here for Zenodo buttons (shiny app, collectri data, docker, repo)
 
 ## Overview
-![Overview_Fig (4)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/3e13cab2-9db5-4923-be0a-372a1f4e45fa)
+![GTC_Overview_Fig_1 (4)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/77ef2727-1152-496c-a469-5ab115fdb78b)
 
 ## Scripts
 
@@ -121,14 +121,14 @@ Here we provide a framework to investigate the following:
 This analysis was carried out in Docker using R version 4.1.3. TF
 activity inference using [decoupleR](), [PANDA]() tissue-specific
 regulatory network generation, and tissue-specific edge identification
-were run using the Docker on UAB’s high performance computing Cluster.
-Bash scripts including resources used are included in this repository.
+were run using Docker on UAB’s high-performance computing Cluster.
+Bash scripts, including resources used, are included in this repository.
 The containers have been made publicly available on Zenodo:
 
 \[put Zenodo buttons here\]
 
 ## Funding
-This work was supported in part by the UAB Lasseigne Lab funds, UAB Pilot Center for Precision Animal Modeling (C-PAM)(1U54OD030167) and JW UAB Predoctoral Training Grant in Cell, Molecular, and Developmental Biology (CMDB T32)(5T32GM008111-35).
+This work was supported in part by the UAB Lasseigne Lab funds, UAB Pilot Center for Precision Animal Modeling (C-PAM)(1U54OD030167), and JW UAB Predoctoral Training Grant in Cell, Molecular, and Developmental Biology (CMDB T32)(5T32GM008111-35).
 
 ## Acknowledgements
 The authors thank the Lasseigne Lab members Vishal Oza, Tabea Soelter, Emma Jones, and Victoria Flanary for their feedback throughout this study. In addition, we thank Vishal Oza for his previously published Jaccard Similarity analysis code we adapted and used for this project. We also thank the UAB Biological Data Science group (RRID:SCR_021766) for providing a script for helping to run containers on the UAB high-performance cluster (https://github.com/U-BDS/training_guides/blob/main/run_rstudio_singularity.sh).
@@ -137,5 +137,5 @@ The authors thank the Lasseigne Lab members Vishal Oza, Tabea Soelter, Emma Jone
 
 [![License](https://img.shields.io/badge/LICENSE-MIT_License-yellow)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/blob/main/LICENSE)
 
-This repository is licensed under the MIT License, see LICENSE
+This repository is licensed under the MIT License; see LICENSE
 documentation within this repository for more details.
