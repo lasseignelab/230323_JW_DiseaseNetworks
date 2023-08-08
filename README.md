@@ -37,13 +37,13 @@ introduced.
 placeholder here for Zenodo buttons (shiny app, collectri data, docker, repo)
 
 ## Overview
-![GTC_Overview_Fig_1 (4)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/77ef2727-1152-496c-a469-5ab115fdb78b)
+![GTC_Overview_Fig_1 (5)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/4110d641-b2b9-4965-a781-af166bc133b4)
 
 ## Scripts
 
 Here we provide a framework to investigate the following:
 
--   [Tissue-specific expresion of *SETBP1* and its known
+-   [Tissue-specific expression of *SETBP1* and its known
     targets](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/Tissue_Expression)
 
 <!-- -->
@@ -53,38 +53,6 @@ Here we provide a framework to investigate the following:
     ## +-- 02_setbp1_expression.R
     ## +-- 03_median_expression_plot.R
     ## \-- 04_median_expression_heatmap.R
-
--   [Construction of tissue-specific gene regulatory
-    networks](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/GTEx_PANDA)
-
-<!-- -->
-
-    ## src/GTEx_PANDA
-    ## +-- 01_array_construction.R
-    ## +-- 02_PANDA.R
-    ## \-- 02_PANDA_array.sh
-
--   Information on Network inputs and how to produce them can be found
-    [here](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/panda_input_construction).
-
-<!-- -->
-
-    ## src/panda_input_construction
-    ## +-- 01_Human_TFmotif.Rmd
-    ## +-- 02_Human_TF_motif_enrichment.Rmd
-    ## \-- 03_Human_PANDA_ppi.Rmd
-
--   [Tissue-specific community
-    detection](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/community_detection)
-
-<!-- -->
-
-    ## src/community_detection
-    ## +-- 01_condor_file_inputs.Rmd
-    ## +-- 02_condor_array_job.sh
-    ## +-- 02_condor_networks_array.R
-    ## +-- 03_Setbp1_Community_Identification.Rmd
-    ## \-- 04_condor_network_analysis.Rmd
 
 -   [SETBP1 TF activity
     analysis](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tf_activity)
@@ -97,24 +65,6 @@ Here we provide a framework to investigate the following:
     ## +-- 02_TF_activity_GTEx.Rmd
     ## +-- README.Rmd
     ## \-- README.md
-
--   [TF
-    targeting](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tf_targeting)
-
-<!-- -->
-
-    ## src/tf_targeting
-    ## \-- 01_TF_targeting.Rmd
-
--   [Tissue-specific edge
-    identification](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/tree/main/src/tissue_specific_edges)
-
-<!-- -->
-
-    ## src/tissue_specific_edges
-    ## \-- 01_tissue_specific_edge_identification.Rmd
-
-*However, this code can be adapted and applied to other genes or TFs.*
 
 ## Dependencies and Resources
 
