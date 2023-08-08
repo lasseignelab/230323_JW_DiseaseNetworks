@@ -69,7 +69,7 @@ Here we provide a framework to investigate the following:
 ## Dependencies and Resources
 
 This analysis was carried out in Docker using R version 4.1.3. TF
-activity inference using [decoupleR]() was run using Docker on UAB’s high-performance computing Cluster.
+activity inference using a multivariate linear model [(decoupleR)](https://saezlab.github.io/decoupleR/) was run using Docker on UAB’s high-performance computing Cluster.
 Bash scripts, including resources used, are included in this repository.
 The containers have been made publicly available on Zenodo:
 
