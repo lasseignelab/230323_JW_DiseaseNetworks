@@ -23,7 +23,7 @@ Medicine, Department of Cell, Developmental and Integrative Biology
 ## Purpose
 
 **The purpose of this research is to investigate the tissue-specific
-expression and regulatory landscape of human *SETBP1* in GTEx tissues**
+expression and TF activity landscape of human *SETBP1* in GTEx tissues**
 This repository contains the code and accompanying data for our analysis
 of the tissue-specific expression and regulation of transcription factor
 (TF) *SETBP1* across 31 non-diseased human tissues part of the
@@ -32,9 +32,11 @@ generating, therefore emphasizing the role of different contexts, such
 as tissues and the role they may play in disease when a variant is
 introduced.
 
-## Data Availability
+As part of this project, we also developed an interactive **GTEx TF Activity Web Application** that can be accessed [here](https://lasseignelab.shinyapps.io/gtex_tf_activity/). Our web application enables researchers to investigate the activity of their favorite TFs in order to generate hypotheses about their role in a diseased setting. 
 
-placeholder here for Zenodo buttons (shiny app, collectri data, docker, repo)
+## Supplemental Data Availability:
+
+- **CollecTRI Data:** [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8222799.svg)](https://doi.org/10.5281/zenodo.8222799)
 
 ## Overview
 ![GTC_Overview_Fig_1 (5)](https://github.com/lasseignelab/230323_JW_DiseaseNetworks/assets/62023125/4110d641-b2b9-4965-a781-af166bc133b4)
@@ -73,7 +75,11 @@ activity inference using a multivariate linear model [(decoupleR)](https://saezl
 Bash scripts, including resources used, are included in this repository.
 The containers have been made publicly available on Zenodo:
 
-\[put Zenodo buttons here\]
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8225177.svg)](https://doi.org/10.5281/zenodo.8225177)
+
+## Additional DOIs
+- **Repository:** [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8225613.svg)](https://doi.org/10.5281/zenodo.8225613)
+- **Shiny Application:** [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8225317.svg)](https://doi.org/10.5281/zenodo.8225317)
 
 ## Funding
 This work was supported in part by the UAB Lasseigne Lab funds, UAB Pilot Center for Precision Animal Modeling (C-PAM)(1U54OD030167), and JW UAB Predoctoral Training Grant in Cell, Molecular, and Developmental Biology (CMDB T32)(5T32GM008111-35).
