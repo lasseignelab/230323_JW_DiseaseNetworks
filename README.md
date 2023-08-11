@@ -14,7 +14,7 @@ Medicine, Department of Cell, Developmental and Integrative Biology
 (CDIB)
 
 ## Citation
-> placeholder here
+> Whitlock, Jordan H., Elizabeth J. Wilk, Timothy C. Howton, Amanda D. Clark, and Brittany N. Lasseigne. 2023. “The Landscape of SETBP1 Gene Expression and Transcription Factor Activity across Human Tissues.” bioRxiv. https://doi.org/10.1101/2023.08.08.551337.
 
 [The Lasseigne Lab](https://www.lasseigne.org/)
 
