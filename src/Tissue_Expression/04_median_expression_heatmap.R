@@ -7,6 +7,8 @@ suppressPackageStartupMessages({
   library(here)
   library(tidyverse)
   library(ComplexHeatmap)
+  library(stats)
+  library(NbClust)
   source(here("src/expression_functions.R"))
 })
 
@@ -55,34 +57,7 @@ tissues_med_log <- tissues_median_tpm %>%
   rename_all(~ gsub(".Median_TPM", "", .)) %>%
   rename_all(~ str_to_title(gsub("_", " ", .)))
 
-
-## Heatmap version 1:
-# everything in one heatmap (not split)
-png(
-  here(
-    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap.png"
-  ),
-  width = 25,
-  height = 30, units = "cm", res = 300
-)
-set.seed(1)
-
-ComplexHeatmap::Heatmap(
-  as.matrix(tissues_med_log[2:length(tissues_med_log)])
-) +
-  rowAnnotation(link = anno_mark(
-    at = which(tissues_med_log$name == "SETBP1"),
-    labels = tissues_med_log$name[tissues_med_log$name == "SETBP1"]
-  ))
-
-dev.off()
-
-## Heatmap version 2:
-# setbp1 separated from targets in heatmap
-targets_tissue <- tissues_med_log %>% dplyr::filter(., Name != "SETBP1")
-
-
-# set color breaks
+# set color breaks for heatmap
 break_quart <- quantile(as.matrix(tissues_med_log[, 2:length(tissues_med_log)]))
 col_fun <- circlize::colorRamp2(
   break_quart,
@@ -95,27 +70,93 @@ col_fun <- circlize::colorRamp2(
   )
 )
 
-# Decide number of k means clusters, adapted code from https://www.r-bloggers.com/2020/05/how-to-determine-the-number-of-clusters-for-k-means-in-r/#:~:text=We%20can%20determine%20the%20number,K%20which%20maximizes%20that%20score.
+# setbp1 separated from targets in heatmap
+targets_tissue <- tissues_med_log %>% dplyr::filter(., Name != "SETBP1")
+
+# pulling first 4 columns to wrangle setbp1 (4th row) to use as heatmap anno
+tempdf <- t(as.matrix(tissues_med_log[1:4, 2:length(tissues_med_log)]))
+colnames(tempdf) <- tissues_med_log$Name[1:4]
+
+
+## Heatmap version 1:
+# everything in one heatmap (not split)
+png(
+  here(
+    "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap.png"
+  ),
+  width = 25,
+  height = 30, units = "cm", res = 300
+)
+
+set.seed(1)
+
+top_ha <- ComplexHeatmap::HeatmapAnnotation(
+  SETBP1 = tempdf[, 4],
+  name = "SETBP1",
+  col = list(SETBP1 = col_fun),
+  show_legend = FALSE,
+  annotation_label = "SETBP1"
+)
+hm_sb1_tar <- ComplexHeatmap::Heatmap(
+  as.matrix(targets_tissue[, 2:length(targets_tissue)]),
+  col = col_fun,
+  show_row_names = FALSE,
+  heatmap_legend_param = list(title = "Scaled TPM"),
+  top_annotation = top_ha
+)
+ht_opt(heatmap_column_names_gp = gpar(fontface = "bold"))
+hm_sb1_tar
+dev.off()
+
+
+
+## Heatmap version 2:
+
+### Decide number of k means clusters
+set.seed(2178)
+opt_clust <- NbClust(tissues_med_log[, -1], min.nc = 2, max.nc = 15, method = "complete", index = "tracew")
+opt_clust$Best.nc # optimal cluster and index value
+
+
+tracew_p <- data.frame(opt_clust$All.index) %>%
+  #rownames_to_column(var = "cluster")# %>%
+  ggplot(aes(x = 2:15, y = opt_clust.All.index)) +
+  geom_line() + 
+  geom_point() +
+  #scale_color_manual(values = c("Max_Second_Diff" = "steelblue")) +
+  geom_vline(xintercept = 3, linetype = "dashed", color = "steelblue", size = 0.8) + # optimal cluster from "Best.nc"
+  scale_x_continuous(breaks = 1:20) +
+  xlab("Cluster") +
+  ylab("Trace(W)")
+tracew_p
+ggsave("./results/SETBP1_Expression/plots/kmeans_traceW.png", width = 10, height = 8, units = "cm")
+
+ # Elbow Method
+# adapted code from https://www.r-bloggers.com/2020/05/how-to-determine-the-number-of-clusters-for-k-means-in-r/#:~:text=We%20can%20determine%20the%20number,K%20which%20maximizes%20that%20score.
 # Use map_dbl to run many models with varying value of k (centers)
-tot_withinss <- map_dbl(1:10,  function(k){
-  model <- kmeans(x = tissues_med_log[, 2:length(tissues_med_log)], centers = k)
+tot_withinss <- map_dbl(1:15,  function(k){
+  set.seed(2178)
+  model <- kmeans(x = tissues_med_log[, -1], #counts w/o name symbol anno col
+                  centers = k)
   model$tot.withinss
 })
 
 # Generate a data frame containing both k and tot_withinss
 elbow_df <- data.frame(
-  k = 1:10,
+  k = 1:15,
   tot_withinss = tot_withinss
 )
 # Plot the elbow plot
 ggplot(elbow_df, aes(x = k, y = tot_withinss)) +
-  geom_line() + geom_point()+
-  scale_x_continuous(breaks = 1:10)
-ggsave(here("results/SETBP1_Expression/plots/elbowplot.png"))
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = 1:20) +
+  geom_vline(xintercept = 3, linetype = "dashed", color = "steelblue", size = 0.8) + # optimal cluster from bend
+  xlab("Cluster") +
+  ylab("Within SS")
 
-# pulling first 4 columns to wrangle setbp1 (4th row) to use as annotation
-tempdf <- t(as.matrix(tissues_med_log[1:4, 2:length(tissues_med_log)]))
-colnames(tempdf) <- tissues_med_log$Name[1:4]
+ggsave(here("results/SETBP1_Expression/plots/elbowplot.png"), width = 12, height = 8, units = "cm")
+
 
 # plot and save
 png(
@@ -196,26 +237,28 @@ ggsave(
   width = 8, height = 9, bg = "white")
 
 # correlations
-library(stats)
-
 setbp1 <- t(as.matrix(tissues_med_log[4, 2:length(tissues_med_log)]))
 targets <- t(as.matrix(tissues_med_log[-4, 2:length(tissues_med_log)]))
 
-cor_res <- list()
+#cor_res <- list()
+cor_res <- NULL
 
-for(i in seq_along(targets)){
+for(i in 1:ncol(targets)){
   res <- cor.test(setbp1, targets[,i])
-  cor_res[[colnames(targets)[i]]] <- res$estimate
+  temp <- data.frame(cor = res$estimate, p_value = res$p.value)
+  cor_res <- rbind(cor_res, temp)
+  #cor_res[[colnames(targets)[i]]] <- temp
+  rownames(cor_res)[i] <- colnames(targets)[i]
 }
 
-t <- t(as.data.frame(cor_res))
-sp1_target_cor <- t %>%
-  as.data.frame() %>% rownames_to_column(., var = "target") %>%
+#t <- t(as.data.frame(cor_res))
+sp1_target_cor <- cor_res %>%
+  rownames_to_column(., var = "target") %>%
   inner_join(., setbp1_targets, by = "target")
 
 sb1_cor_cluster <- left_join(clu_df, sp1_target_cor,
                              by = c("GeneID" = "name")) %>%
-  select(GeneID, Cluster, SETBP1_Cor = cor, description)
+  select(GeneID, Cluster, SETBP1_Cor = cor, Cor_P_Value = p_value, description)
 write.csv(sb1_cor_cluster, here(
   "results/SETBP1_Expression/setbp1_target_cor_clust.csv"))
 

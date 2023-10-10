@@ -114,7 +114,7 @@ sb1_tissue_plot <- ggplot(setbp1_med_tpm_vp,
     aes(x = Max, label = nSamples, fontface = "bold"),
     nudge_x = 1, nudge_y = 0.22) +
   scale_x_continuous(limits = c(-0.5, 7)) +
-  labs(x = "TPM Scaled (1+log2)", y = "GTEx Tissue") +
+  labs(x = "SETBP1 TPM Expression (1+log2)", y = "GTEx Tissue") +
   theme(
     # plot.margin = margin(0.1, 2.5, 0.1, 0.1, "cm"), #top, right, bottom, left
     panel.grid.major = element_blank(),
@@ -160,23 +160,22 @@ brain_regions <- brain_tpm %>%
 # RIDGELINE PLOT - SETBP1 BRAIN REGIONS
 br_plot <- brain_regions %>%
   mutate(TPM = log(1 + TPM, base = 2)) %>%
-  mutate(Region = str_trunc(Region, 20)) %>%
   ggplot(.,
          aes(x = TPM, y = reorder(Region, TPM, FUN = median),
              fill = Tissue)) +
   ggridges:::stat_density_ridges(quantile_lines = TRUE, quantiles = 2) +
   scale_fill_manual(values = c(alpha("#2C1D6C", 0.65))) +
-  labs(x = "TPM Scaled (1+log2)", y = "") +
+  labs(x = "SETBP1 TPM Expression (1+log2)", y = "GTEx Brain Regions") +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background = element_blank(),
     text = element_text(family = "Helvetica"),
-    axis.text.x = element_text(color = "black", size = 25),
-    axis.text.y = element_text(color = "black", size = 25),
+    axis.text.x = element_text(color = "black", size = 10),
+    axis.text.y = element_text(color = "black", size = 10),
     axis.text = element_text(face = "bold"),
     legend.position = "none",
-    axis.title.x = element_text(face = "bold", size = 15),
+    axis.title.x = element_text(face = "bold", size = 12),
     title = element_text(face = "bold"),
   )
 ggsave(
@@ -237,7 +236,7 @@ p <- tissues_med_tpm_vp %>% ggplot(aes(
     "TRUE" = alpha("#2C1D6C", 0.75),
     "FALSE" = alpha("#D3B1C5", 0.5)
   )) +
-  ylab("Median TPM Scaled (1+log2)") +
+  ylab("Targets of SETBP1 Median TPM Expression (1+log2)") +
   # ggtitle("Expression of SETBP1 Targets Across GTEx Tissues") +
   labs(x = "GTEx Tissue") +
   theme(
