@@ -75,7 +75,7 @@ activity inference using a multivariate linear model [(decoupleR)](https://saezl
 Bash scripts, including resources used, are included in this repository.
 The containers have been made publicly available on Zenodo:
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8225177.svg)](https://doi.org/10.5281/zenodo.8225177)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8428932.svg)](https://doi.org/10.5281/zenodo.8428932)
 
 ## Additional DOIs
 - **Repository:** [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8225613.svg)](https://doi.org/10.5281/zenodo.8225613)
