@@ -163,17 +163,22 @@ png(
   here(
     "results/SETBP1_Expression/plots/median_tpm_scaled_heatmap_3clusters.png"
   ),
-  width = 25, height = 30, units = "cm", res = 300 # height = 50 ensures legible y-axis
+  width = 25, height = 30, units = "cm", res = 600 # height = 50 ensures legible y-axis
 )
 set.seed(1)
+
+ht_opt("heatmap_column_names_gp" = gpar(fontface = "bold", fontsize = 16))
+ht_opt("heatmap_row_names_gp" = gpar(fontface = "bold", fontsize = 16))
 
 top_ha <- ComplexHeatmap::HeatmapAnnotation(
   SETBP1 = tempdf[, 4],
   name = "SETBP1",
   col = list(SETBP1 = col_fun),
   show_legend = FALSE,
+  annotation_label = "SETBP1",
+  annotation_name_gp = gpar(fontface = "bold", fontsize = 16)
+  #labels_gp = gpar(fontface = "bold", fontsize = 10),
   #gp = gpar(fontface = "bold"),
-  annotation_label = "SETBP1"
 )
 hm_sb1_tar <- ComplexHeatmap::Heatmap(
   as.matrix(targets_tissue[, 2:length(targets_tissue)]),
@@ -185,7 +190,7 @@ hm_sb1_tar <- ComplexHeatmap::Heatmap(
   heatmap_legend_param = list(title = "Scaled TPM"),
   top_annotation = top_ha
 )
-ht_opt(heatmap_column_names_gp = gpar(fontface = "bold"))
+
 hm_sb1_tar
 dev.off()
 
@@ -214,28 +219,28 @@ p <- cluster_fea %>%
   geom_point(alpha = 0.7, shape = 21) +
   scale_size(range = c(2, 10), name = "Recall") + 
   scale_fill_distiller(palette = "Purples") + 
-  labs(x = "Recall", y = "Terms") +
+  labs(x = "Recall", y = "") +
   theme(
+    text = element_text(face = "bold", size = 18, family = "Helvetica"),
     panel.grid.major = element_line("gray95"),
-    #panel.grid.minor = element_blank(),
-    panel.background = element_blank(),
-    text = element_text(family = "Helvetica"),
-    #axis.text.x = element_text(color = "black", size = 10),
-    axis.text.y = element_text(color = "black"),
-    axis.text.x = element_text(color = "black"),
-    axis.text = element_text(face = "bold"),
-    legend.title = element_text(face = "bold"),
-    legend.text = element_text(face = "bold"),
-    axis.title.y = element_text(face = "bold"),
-    axis.title.x = element_text(face = "bold"),
-    title = element_text(face = "bold"),
-    plot.title = element_text(size = 14, hjust = 0.5)
+    # #panel.grid.minor = element_blank(),
+    panel.background = element_blank()
+    # text = element_text(family = "Helvetica"),
+    # axis.text.y = element_text(color = "black"),
+    # axis.text.x = element_text(color = "black"),
+    # axis.text = element_text(face = "bold"),
+    # legend.title = element_text(face = "bold"),
+    # legend.text = element_text(face = "bold"),
+    # axis.title.y = element_text(face = "bold"),
+    # axis.title.x = element_text(face = "bold"),
+    # title = element_text(face = "bold"),
+    # plot.title = element_text(size = 14, hjust = 0.5)
   )
 p
 ggsave(
   here("results/SETBP1_Expression/plots/fea_3clusters_bubbleplot.png"),
-  width = 8, height = 9, bg = "white")
-
+  width = 27, height = 30, units = "cm", dpi = 600, bg = "white")
+#width = 25, height = 30, units = "cm", res = 600
 # correlations
 setbp1 <- t(as.matrix(tissues_med_log[4, 2:length(tissues_med_log)]))
 targets <- t(as.matrix(tissues_med_log[-4, 2:length(tissues_med_log)]))
