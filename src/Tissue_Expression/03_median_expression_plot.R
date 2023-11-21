@@ -78,15 +78,7 @@ p <- setbp1_med_tpm_vp %>% ggplot(aes(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background = element_blank(),
-    text = element_text(family = "Helvetica"),
-    axis.text.x = element_text(color = "black", size = 10),
-    axis.text.y = element_text(color = "black"),
-    axis.text = element_text(face = "bold"),
-    legend.title = element_text(face = "bold"),
-    legend.text = element_text(face = "bold"),
-    axis.title.y = element_text(face = "bold"),
-    axis.title.x = element_text(face = "bold"),
-    title = element_text(face = "bold"),
+    text = element_text(family = "Helvetica", face = "bold", size = 16)
   )
 # add boxplot
 p <- p + geom_boxplot(width = 0.1) + coord_flip()
@@ -120,21 +112,13 @@ sb1_tissue_plot <- ggplot(setbp1_med_tpm_vp,
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background = element_blank(),
-    text = element_text(family = "Helvetica"),
-    axis.text.x = element_text(color = "black", size = 10),
-    axis.text.y = element_text(color = "black"),
-    axis.text = element_text(face = "bold"),
-    legend.title = element_text(face = "bold"),
-    legend.text = element_text(face = "bold"),
-    axis.title.y = element_text(face = "bold"),
-    axis.title.x = element_text(face = "bold"),
-    title = element_text(face = "bold"),
+    text = element_text(family = "Helvetica", face = "bold", size = 16)
   )
 ggsave(
   here(
     "results/SETBP1_Expression/plots/setbp1_tissues_ridgeplot.png"
   ),
-  height = 8, width = 6
+  height = 8, width = 6, dpi = 600
 )
 
 
@@ -170,19 +154,13 @@ br_plot <- brain_regions %>%
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
     panel.background = element_blank(),
-    text = element_text(family = "Helvetica"),
-    axis.text.x = element_text(color = "black", size = 10),
-    axis.text.y = element_text(color = "black", size = 10),
-    axis.text = element_text(face = "bold"),
-    legend.position = "none",
-    axis.title.x = element_text(face = "bold", size = 12),
-    title = element_text(face = "bold"),
+    text = element_text(family = "Helvetica", face = "bold", size = 16)
   )
 ggsave(
   here(
     "results/SETBP1_Expression/plots/setbp1_brainregions_ridgeplot.png"
   ),
-  height = 8, width = 6
+  height = 8, width = 6, dpi = 600
 )
 
 ### SETBP1 TARGET EXPRESSION ACROSS TISSUES
