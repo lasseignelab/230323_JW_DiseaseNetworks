@@ -16,6 +16,7 @@ Medicine, Department of Cell, Developmental and Integrative Biology
 ## Citation
 > Whitlock, J. H., Wilk, E. J., Howton, T. C., Clark, A. D., & Lasseigne, B. N. (2024). The landscape of SETBP1 gene expression and transcription factor activity across human tissues. PLOS ONE, 19(1), e0296328. https://doi.org/10.1371/journal.pone.0296328
 
+
 [The Lasseigne Lab](https://www.lasseigne.org/)
 
 <img src="https://www.lasseigne.org/img/main/lablogo.png" width="90" height="90">
